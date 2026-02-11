@@ -1,0 +1,349 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" version="29.3.8" pages="2">
+  <diagram name="StateMachine - UI Navigation Flow" id="TqhlqLy5SqzhbVpyvoVa">
+    <mxGraphModel dx="1665" dy="1676" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ui_init" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="444.53125" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_loading" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Loading Events&#xa;(EventService.GetMonthlyEvents)" vertex="1">
+          <mxGeometry height="70" width="280" x="314.53125" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_list" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Viewing List&#xa;(ListView.RenderList)" vertex="1">
+          <mxGeometry height="60" width="240" x="172" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_map" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Viewing Map&#xa;(MapView.ShowPins)" vertex="1">
+          <mxGeometry height="60" width="240" x="45" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_details" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Event Details&#xa;(EventDetailsView.Render)" vertex="1">
+          <mxGeometry height="60" width="260" x="50" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_post" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Post Event Form&#xa;(PostEventView)" vertex="1">
+          <mxGeometry height="60" width="240" x="355" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_submit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Submitting Event&#xa;(PostEventView.Submit → EventService.CreateEvent)" vertex="1">
+          <mxGeometry height="70" width="280" x="410" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_fav" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Toggle Favorite&#xa;(FavoriteService.StarEvent / UnstarEvent)" vertex="1">
+          <mxGeometry height="70" width="320" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_cal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Sync to Calendar&#xa;(CalendarService.SyncStarredEvent)" vertex="1">
+          <mxGeometry height="70" width="320" x="350" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_final_outer" parent="1" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="442" y="307" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_final_inner" parent="1" style="ellipse;fillColor=none;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="18" width="18" x="750" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_e0" edge="1" parent="1" source="ui_init" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_loading" value="appStart">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="454.53125" y="32" />
+              <mxPoint x="454.53125" y="108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e1" edge="1" parent="1" source="ui_loading" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_list" value="eventsLoaded">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="364.53125" y="202" />
+              <mxPoint x="292" y="278" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e2" edge="1" parent="1" source="ui_list" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_map" value="toggleMap">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="362" />
+              <mxPoint x="107.5" y="438" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e3" edge="1" parent="1" source="ui_map" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_list" value="toggleList">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="222.5" y="438" />
+              <mxPoint x="246" y="362" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e4" edge="1" parent="1" source="ui_list" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_details" value="selectEvent(eventId)&#xa;ListView.StartButton">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="292" y="364" />
+              <mxPoint x="320" y="400" />
+              <mxPoint x="320" y="560" />
+              <mxPoint x="180" y="596" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e5" edge="1" parent="1" source="ui_map" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_details" value="selectPin(eventId)&#xa;MapView.SelectPin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="165" y="522" />
+              <mxPoint x="96.66666666666666" y="598" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e6" edge="1" parent="1" source="ui_details" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_list" value="back">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="263.3333333333333" y="596" />
+              <mxPoint x="330" y="560" />
+              <mxPoint x="330" y="400" />
+              <mxPoint x="338" y="364" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e7" edge="1" parent="1" source="ui_details" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_fav" value="star/unstar">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="86.25" y="692" />
+              <mxPoint x="82.5" y="768" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e8" edge="1" parent="1" source="ui_fav" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_details" value="done">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="237.5" y="768" />
+              <mxPoint x="148.75" y="692" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e9" edge="1" parent="1" source="ui_details" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_cal" value="syncStarred">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="211.25" y="694" />
+              <mxPoint x="432.5" y="768" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e10" edge="1" parent="1" source="ui_cal" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_details" value="synced">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="587.5" y="768" />
+              <mxPoint x="273.75" y="694" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e11" edge="1" parent="1" source="ui_list" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_post" value="createEvent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="384" y="366" />
+              <mxPoint x="475" y="438" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e12" edge="1" parent="1" source="ui_post" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_submit" value="submit(event)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="475" y="522" />
+              <mxPoint x="482.5" y="598" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e13" edge="1" parent="1" source="ui_submit" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_loading" value="created → refresh list">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="617.5" y="598" />
+              <mxPoint x="625" y="560" />
+              <mxPoint x="625" y="400" />
+              <mxPoint x="625" y="400" />
+              <mxPoint x="625" y="240" />
+              <mxPoint x="544.53125" y="202" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ui_e14" edge="1" parent="1" source="ui_loading" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="ui_final_outer" value="exit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="454.53125" y="204" />
+              <mxPoint x="455" y="278" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="StateMachine - Backend Event Ingestion" id="nTvcyQyQ6dBJ33EvpZHD">
+    <mxGraphModel dx="1665" dy="1676" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="be_init" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="546.0785188400205" as="geometry" />
+        </mxCell>
+        <mxCell id="be_idle" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Idle / Waiting" vertex="1">
+          <mxGeometry height="60" width="220" x="446.0785188400205" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="be_refresh" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Refresh Requested&#xa;(EventService.RefreshFromSources)" vertex="1">
+          <mxGeometry height="60" width="280" x="332.30930909207814" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="be_fetch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Fetching From Providers&#xa;(ApiClient.FetchEvents via Eventbrite / Ticketmaster / PredictHQ / SeatGeek)" vertex="1">
+          <mxGeometry height="70" width="540" x="160" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="be_normalize" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Normalize + Validate&#xa;(map to Event, enrich Location/Category, de-dupe)" vertex="1">
+          <mxGeometry height="70" width="540" x="130" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="be_persist" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Persist Events&#xa;(EventRepository.UpsertMany / Save)" vertex="1">
+          <mxGeometry height="70" width="540" x="115" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="be_reconcile" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Reconcile Activity&#xa;(mark missing as inactive, update IsActive)" vertex="1">
+          <mxGeometry height="70" width="540" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="be_done" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Completed&#xa;(events available for QueryEvents/GetMonthlyEvents)" vertex="1">
+          <mxGeometry height="70" width="540" x="58" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="be_error" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeColor=#000000;" value="Error&#xa;(provider/network/parse/db)" vertex="1">
+          <mxGeometry height="70" width="260" x="570" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="be_retry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Retry / Backoff" vertex="1">
+          <mxGeometry height="60" width="260" x="650" y="1125" as="geometry" />
+        </mxCell>
+        <mxCell id="be_final_outer" parent="1" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="2" y="1142" as="geometry" />
+        </mxCell>
+        <mxCell id="be_final_inner" parent="1" style="ellipse;fillColor=none;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="18" width="18" x="970" as="geometry" />
+        </mxCell>
+        <mxCell id="be_e0" edge="1" parent="1" source="be_init" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_idle" value="serviceStart">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="556.0785188400205" y="32" />
+              <mxPoint x="556.0785188400205" y="108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e1" edge="1" parent="1" source="be_idle" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_refresh" value="schedule / manual trigger">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="503.5785188400205" y="192" />
+              <mxPoint x="472.30930909207814" y="268" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e2" edge="1" parent="1" source="be_refresh" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_fetch" value="begin fetch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="472.30930909207814" y="352" />
+              <mxPoint x="430" y="428" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e3" edge="1" parent="1" source="be_fetch" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_normalize" value="events received">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="253.33333333333331" y="522" />
+              <mxPoint x="400" y="598" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e4" edge="1" parent="1" source="be_normalize" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_persist" value="valid + mapped">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="267.5" y="692" />
+              <mxPoint x="385" y="768" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e5" edge="1" parent="1" source="be_persist" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_reconcile" value="upsert success">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="252.5" y="862" />
+              <mxPoint x="270" y="938" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e6" edge="1" parent="1" source="be_reconcile" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_done" value="reconciled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="1032" />
+              <mxPoint x="195.5" y="1108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e7" edge="1" parent="1" source="be_done" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_idle" value="return to idle">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460.5" y="1108" />
+              <mxPoint x="890" y="1070" />
+              <mxPoint x="890" y="900" />
+              <mxPoint x="890" y="900" />
+              <mxPoint x="890" y="730" />
+              <mxPoint x="890" y="730" />
+              <mxPoint x="890" y="560" />
+              <mxPoint x="890" y="560" />
+              <mxPoint x="890" y="390" />
+              <mxPoint x="890" y="390" />
+              <mxPoint x="890" y="230" />
+              <mxPoint x="608.5785188400205" y="192" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e8" edge="1" parent="1" source="be_fetch" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_error" value="fetch failed / timeout">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="524" />
+              <mxPoint x="715" y="560" />
+              <mxPoint x="715" y="730" />
+              <mxPoint x="715" y="730" />
+              <mxPoint x="715" y="900" />
+              <mxPoint x="783.3333333333334" y="938" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e9" edge="1" parent="1" source="be_normalize" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_error" value="parse/validation failed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="532.5" y="692" />
+              <mxPoint x="685" y="730" />
+              <mxPoint x="685" y="900" />
+              <mxPoint x="700" y="936" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e10" edge="1" parent="1" source="be_persist" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_error" value="db error">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="517.5" y="862" />
+              <mxPoint x="616.6666666666666" y="938" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e11" edge="1" parent="1" source="be_error" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_retry" value="retryable?">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="762.5" y="1032" />
+              <mxPoint x="717.5" y="1108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e12" edge="1" parent="1" source="be_retry" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_fetch" value="backoff elapsed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="842.5" y="1108" />
+              <mxPoint x="860" y="1070" />
+              <mxPoint x="860" y="900" />
+              <mxPoint x="860" y="900" />
+              <mxPoint x="860" y="730" />
+              <mxPoint x="860" y="730" />
+              <mxPoint x="860" y="560" />
+              <mxPoint x="606.6666666666666" y="522" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_e13" edge="1" parent="1" source="be_error" style="endArrow=block;html=1;rounded=1;noEdgeStyle=1;orthogonal=1;" target="be_final_outer" value="fatal / shutdown">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="637.5" y="1032" />
+              <mxPoint x="15" y="1108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
