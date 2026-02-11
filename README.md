@@ -3,4 +3,6 @@
 
 COMP 425 Final Project
 
-![State Machine Diagrams](doc/UI_NAVIGATION_AND_EVENTS.drawio)
+![UI State Machine Diagram](doc/UI_NAVIGATION.drawio.svg)
+
+![Events State Machine Diagram](doc/EVENT_BACKEND.drawio.svg)
