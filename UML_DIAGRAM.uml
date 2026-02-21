@@ -1,0 +1,104 @@
+@startuml
+' Community Event Finder — Project UML (PlantUML)
+
+package "CommunityEventsApp.Models" {
+  class EventItem {
+    +EventId : string
+    +Source : string
+    +Title : string
+    +Description : string
+    +Category : string
+    +StartTime : DateTime
+    +EndTime : DateTime [nullable]
+    +VenueName : string
+    +Address : string
+    +City : string
+    +State : string
+    +Zip : string
+    +Latitude : double [nullable]
+    +Longitude : double [nullable]
+    +Url : string
+  }
+}
+
+package "CommunityEventsApp.Data" {
+  class Db <<static>> {
+    +Open() : SqlConnection
+  }
+
+  class EventRepository {
+    -userId : string
+    -_latRegex : Regex
+    -_lonRegex : Regex
+    +EventRepository()
+    -GetOrCreateUser() : string
+    +GetEventsForCurrentMonth() : List<EventItem>
+    +GetFavoriteEventsForCurrentMonth() : List<EventItem>
+    +IsFavorite(eventId : string) : bool
+    +ToggleFavorite(eventId : string) : void
+    +InsertEvent(title, category, start, end, venue, address, city, state, zip, desc, url) : void
+    -TryGeocode(address, city, state, zip) : (decimal? lat, decimal? lon)
+  }
+}
+
+package "UI.WinForms" {
+  class Program {
+    +Main() : void
+  }
+
+  class FormList <<Form>> {
+    -_repo : EventRepository
+    -map : GMapControl
+    -markerOverlay : GMapOverlay
+    -radiusOverlay : GMapOverlay
+    -currentEvent : EventItem
+    -_lastGridEvents : List<EventItem>
+    -geoCache : Dictionary<string, Tuple<decimal,decimal>>
+    -_centerLat : double
+    -_centerLon : double
+    -_radiusMiles : double
+    +FormList()
+    +BuildLayout() : void
+    +ReloadGrid() : void
+    +RedrawMap() : void
+    +ApplyDistanceButton_Click(sender, e) : void
+    +Map_OnMarkerClick(item, e) : void
+  }
+
+  class FormAddEvent <<Form>> {
+    -repo : EventRepository
+    +FormAddEvent()
+    -WireUpLogic() : void
+    -SaveBtn_Click(sender, e) : void
+    -Require(control, label) : bool
+  }
+
+  class CalendarForm <<Form>> {
+    -events : List<EventItem>
+    -dragBox : Panel
+    -dragOffsetY : int
+    -HourHeight : int
+    +CalendarForm(evs : List<EventItem])
+    -RenderDay(day : DateTime) : void
+    -DrawEventsWithOverlap(list : List<EventItem>) : void
+    -CreateEventBlock(ev : EventItem, column : int, totalColumns : int) : Panel
+  }
+}
+
+' Relationships / dependencies
+EventRepository --> EventItem : returns / maps
+EventRepository --> Db : uses
+FormList --> EventRepository : uses
+FormAddEvent --> EventRepository : uses
+CalendarForm --> EventItem : displays / manipulates
+FormList --> CalendarForm : opens
+FormList ..> GMap.NET : depends on
+FormList ..> Newtonsoft.Json : depends on
+Program --> FormList : starts
+
+' UI inheritance
+FormList -|> System.Windows.Forms.Form
+FormAddEvent -|> System.Windows.Forms.Form
+CalendarForm -|> System.Windows.Forms.Form
+
+@enduml
