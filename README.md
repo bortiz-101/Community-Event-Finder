@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Community Events Finder (Windows Desktop App)
 
 COMP 425 Final Project. A desktop application for discovering, organizing, and visualizing local events. Built with **C# WinForms, SQL Server LocalDB, and GMap.NET (Bing Maps provider)**, this system aggregates monthly events, displays them on an interactive map, and provides advanced filtering, favorites, and calendar visualization.
@@ -71,3 +72,13 @@ Key features:
 3. API to import events and filtration
 4. Need online DB
 
+=======
+# Community-Event-Finder
+![Project UML Diagram](UML_DIAGRAM.drawio.svg)
+
+COMP 425 Final Project
+
+![UI State Machine Diagram](doc/UI_NAVIGATION.drawio.svg)
+
+![Events State Machine Diagram](doc/EVENT_BACKEND.drawio.svg)
+>>>>>>> main
