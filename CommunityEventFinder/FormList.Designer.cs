@@ -1,21 +1,37 @@
-﻿// File: FormList.Designer.cs
-namespace CommunityEventsApp
+﻿namespace CommunityEventsApp
 {
     partial class FormList
     {
+        private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.DataGridView dataGridView1;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+                components.Dispose();
+            base.Dispose(disposing);
+        }
 
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            // ... other designer-generated initialization code ...
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.SuspendLayout();
 
-            // keep event hookup but do NOT define another FormList_Load method here
+            this.dataGridView1.ColumnHeadersHeightSizeMode =
+                System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.TabIndex = 0;
+
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Text = "Community Events Finder";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.FormList_Load);
 
-            // ... remaining designer code ...
-        }
+            this.Controls.Add(this.dataGridView1);
 
-        // NOTE: remove any duplicate FormList_Load method from this file.
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.ResumeLayout(false);
+        }
     }
 }
