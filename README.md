@@ -70,4 +70,4 @@ Key features:
 2. Improve UI
 3. API to import events and filtration
 4. Need online DB
-
+5. Add search window
