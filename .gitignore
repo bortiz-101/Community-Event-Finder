@@ -287,3 +287,12 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Local SQLite database
+app.db
+*.db
+*.db-shm
+*.db-wal
+
+# Connection strings and app passwords
+appsettings.Development.json
