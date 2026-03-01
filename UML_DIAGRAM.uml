@@ -1,0 +1,172 @@
+@startuml
+title Community Events Platform - Full Class Overview
+
+' ========================
+' FRONTEND
+' ========================
+
+package "Frontend (Browser)" {
+
+class index_html {
+  + toolbar
+  + map container
+  + list panel
+  + detail panel
+}
+
+class start_html {
+  + address input
+  + category filter
+  + radius filter
+  + go()
+}
+
+class add_html {
+  + form fields
+  + save()
+}
+
+class app_js {
+
+  ' ---- state variables ----
+  - allEvents : array
+  - selectedId : string
+  - searchText : string
+  - radiusMiles : number
+  - centerLat : number
+  - centerLon : number
+  - markerMap : Map
+
+  ' ---- core functions ----
+  + init()
+  + loadEvents()
+  + applyFilters()
+  + renderMap(events)
+  + renderList(events)
+  + selectEvent(event)
+  + highlightMarker(id,on)
+  + highlightList(id,on)
+  + setCenterFromAddress(addr)
+  + openCalendarWindow()
+  + afterCreateEvent(id)
+  + showAll()
+}
+
+}
+
+' relationships inside frontend
+start_html --> index_html : redirect with params
+index_html --> app_js
+add_html --> app_js : afterCreateEvent()
+
+' ========================
+' BACKEND
+' ========================
+
+package "Backend (ASP.NET Core)" {
+
+class EventsController {
+
+  + GetAll()
+  + Add(dto)
+  + Favorites()
+  + ToggleFavorite(id)
+  + Delete(id)
+  + ExportIcs()
+}
+
+class EventRepository {
+
+  - _userId : string
+  - _httpFactory : IHttpClientFactory
+
+  + GetEventsForCurrentMonthAsync()
+  + GetFavoriteEventsForCurrentMonthAsync()
+  + InsertEventAsync(...)
+  + DeleteEventAsync(id)
+  + ToggleFavoriteAsync(id)
+  - TryGeocodeAsync(...)
+  - MapEvent(reader)
+}
+
+class EventItem {
+
+  + EventId : string
+  + Source : string
+  + Title : string
+  + Description : string
+  + Category : string
+  + StartTime : DateTime
+  + EndTime : DateTime
+  + VenueName : string
+  + Address : string
+  + City : string
+  + State : string
+  + Zip : string
+  + Latitude : double
+  + Longitude : double
+  + Url : string
+  + IsFavorite : bool
+}
+
+class AddEventDto {
+
+  + Title : string
+  + Category : string
+  + Start : DateTime?
+  + End : DateTime?
+  + Venue : string
+  + Address : string
+  + City : string
+  + State : string
+  + Zip : string
+  + Desc : string
+  + Url : string
+}
+
+}
+
+' ========================
+' DATABASE
+' ========================
+
+package "Database" {
+
+class Users {
+  + UserId
+  + Email
+}
+
+class Events {
+  + EventId
+  + Title
+  + StartTime
+  + Category
+  + Latitude
+  + Longitude
+}
+
+class Favorites {
+  + UserId
+  + EventId
+}
+
+}
+
+' ========================
+' RELATIONSHIPS
+' ========================
+
+app_js --> EventsController : REST API
+EventsController --> EventRepository
+EventRepository --> EventItem
+EventsController --> AddEventDto
+
+EventRepository --> Events
+EventRepository --> Favorites
+EventRepository --> Users
+
+Favorites --> Users
+Favorites --> Events
+
+@enduml

@@ -1,4 +1,20 @@
 ﻿// ================= MAP INIT =================
+const categoryColors = {
+    "Music and theather": "#e74c3c",
+    "Game, party and social": "#ff7f50",
+    Sports: "#27ae60",
+    Food: "#f39c12",
+    Study: "#3498db",
+    Arts: "#9b59b6",
+    Business: "#34495e",
+    Festival: "#8e44ad",
+    Community: "#16a085",
+    Career: "#2c3e50",
+    Volunteer: "#d35400",
+    Health: "#1abc9c",
+    Family: "#e84393",
+    Other: "#7f8c8d"
+};
 
 let map = L.map('map').setView([41.9975, -87.6586], 12);
 
@@ -221,7 +237,23 @@ function distanceMiles(lat1, lon1, lat2, lon2) {
 
 
 // ================= MAP =================
+function makeMarkerIcon(color) {
 
+    return L.divIcon({
+        className: "",
+        html: `
+<svg width="28" height="40" viewBox="0 0 24 36">
+<path fill="${color}"
+d="M12 0C7 0 3 4 3 9c0 7 9 27 9 27s9-20 9-27c0-5-4-9-9-9z"/>
+<circle cx="12" cy="10" r="4" fill="white"/>
+</svg>
+`,
+        iconSize: [28, 40],
+        iconAnchor: [14, 40],
+        popupAnchor: [0, -35]
+    });
+
+}
 function renderMap(events) {
     clusterLayer.clearLayers();
 
@@ -230,8 +262,12 @@ function renderMap(events) {
     events.forEach(ev => {
         if (!ev.latitude) return;
 
-        const marker = L.marker([ev.latitude, ev.longitude])
-            .bindPopup(`<b>${escapeHtml(ev.title || "")}</b>`);
+        const color = categoryColors[ev.category] || categoryColors.default;
+
+        const marker = L.marker(
+            [ev.latitude, ev.longitude],
+            { icon: makeMarkerIcon(color) }
+        );
 
         marker.on("click", () => {
             marker.openPopup();
