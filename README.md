@@ -2,6 +2,7 @@
 
 ## 3/1/2026 Update
 
+* Linked to online database by environmental variable.
 * Auto-refresh after creating events and prevent duplicates (same name, user, time)
 * Users can delete only their own events; others hide delete option
 * Map ↔ List sync: clicking marker or list item highlights and centers the other
@@ -9,9 +10,21 @@
 * Fetch events from today through the next 30 days
 * Favorites system with filter and ICS export
 * Calendar supports month/week/day views, category colors, side-by-side events, and detailed info
-* Category dropdown with extensible color-coded event types
+* Category dropdown with extensible color-coded event types on map, list and calendar
 * Start page with default address + filters; main page includes search, reset (“Show All”), and radius tools
 * Built with ASP.NET Core, SQL Server, Leaflet, and FullCalendar
+
+## How to access database from App
+
+Before running, set environment variable: ConnectionStrings__DefaultConnection
+
+Example (Windows PowerShell):
+
+```
+setx ConnectionStrings__DefaultConnection "Server=147.126.2.58;Database=Community_Event_Finder;User Id=XXXX;Password=XXXX;TrustServerCertificate=True;"
+
+echo %ConnectionStrings__DefaultConnection%
+```
 
 ## Target Audience: College students (18-24)
 ## Problem: 
@@ -60,8 +73,8 @@ The proposed solution is a UI application with a SQL database backend for data s
 - Other user generated events
 
 ## Value proposition:
-• One app replaces flyers, calendar and event creator
-• Helps students discover events that they actually care about
-• Encourages campus and community engagement
-• Empowers students to create and promote their own events
+* One app replaces flyers, calendar and event creator
+* Helps students discover events that they actually care about
+* Encourages campus and community engagement
+* Empowers students to create and promote their own events
 

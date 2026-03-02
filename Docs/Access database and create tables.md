@@ -1,15 +1,18 @@
-# Create local database
+# Access database and create tables
 
-### Overview
+## How to access database
+
+Before running, set environment variable: ConnectionStrings__DefaultConnection
+
+Example (Windows PowerShell):
 
 ```
-C:\Users\Administrator\AppData\Local\Microsoft\Microsoft SQL Server Local DB\Instances\MSSQLLocalDB
+setx ConnectionStrings__DefaultConnection "Server=147.126.2.58;Database=Community_Event_Finder;User Id=XXXX;Password=XXXX;TrustServerCertificate=True;"
 ```
 
-* Name: CampusEvents
-* Tables: Events, Users, Favorites
+## Create databases
 
-### Create databases:
+### Create tables
 
 ```
 CREATE TABLE Users (
@@ -68,103 +71,30 @@ CREATE TABLE Favorites (
 CREATE INDEX IX_Favorites_EventId ON Favorites(EventId);
 ```
 
-### Add test data:
+### Add index
 
 ```
-INSERT INTO Users (Email)
-VALUES ('testuser@demo.com');
+CREATE UNIQUE INDEX UX_Event_Title_Time
+ON Events(Title, StartTime, CreatedByUserId);
 
-INSERT INTO Events
-(Source, Title, Description, Category, StartTime, EndTime,
- VenueName, Address, Latitude, Longitude, CreatedByUserId)
-VALUES
-('Manual',
- 'Chicago AI Meetup',
- 'Networking + AI talks',
- 'Tech',
- DATEADD(day,2,GETDATE()),
- DATEADD(hour,2,DATEADD(day,2,GETDATE())),
- 'Tech Hub',
- '123 Innovation Ave',
- 41.881832,
- -87.623177,
- (SELECT TOP 1 UserId FROM Users));
+CREATE INDEX idx_events_starttime
+ON Events(StartTime);
 
- INSERT INTO Favorites (UserId, EventId)
-VALUES (
- (SELECT TOP 1 UserId FROM Users),
- (SELECT TOP 1 EventId FROM Events)
-);
+CREATE INDEX idx_favorites_user_event
+ON Favorites(UserId, EventId);
+
+CREATE INDEX idx_events_owner
+ON Events(CreatedByUserId);
 ```
 
-### February
+### Create test user
 
 ```
-DECLARE @y INT = YEAR(GETDATE());
-DECLARE @m INT = MONTH(GETDATE());
-
-INSERT INTO Events
-(EventId, Source, Title, Description, Category,
- StartTime, EndTime, VenueName, Address, City, State, Zip,
- Latitude, Longitude, Url, CreatedByUserId)
-VALUES
-(CONVERT(NVARCHAR(36), NEWID()), 'Seed',
- 'Study Group @ LUC Library',
- 'Group study session for CS students.',
- 'Study',
- DATETIMEFROMPARTS(@y,@m,10,18,0,0,0),
- DATETIMEFROMPARTS(@y,@m,10,20,0,0,0),
- 'Cudahy Library',
- '6525 N Sheridan Rd', 'Chicago', 'IL', '60626',
- 41.9987, -87.6583,
- NULL, NULL),
-
-(CONVERT(NVARCHAR(36), NEWID()), 'Seed',
- 'Downtown Jazz Night',
- 'Live jazz night near the Loop.',
- 'Music',
- DATETIMEFROMPARTS(@y,@m,12,19,30,0,0),
- DATETIMEFROMPARTS(@y,@m,12,22,0,0,0),
- 'Jazz Showcase',
- '806 S Plymouth Ct', 'Chicago', 'IL', '60605',
- 41.8719, -87.6282,
- NULL, NULL),
-
-(CONVERT(NVARCHAR(36), NEWID()), 'Seed',
- 'Career Talk @ UChicago',
- 'Career talk and networking.',
- 'Career',
- DATETIMEFROMPARTS(@y,@m,15,17,0,0,0),
- DATETIMEFROMPARTS(@y,@m,15,18,30,0,0),
- 'Ida Noyes Hall',
- '1212 E 59th St', 'Chicago', 'IL', '60637',
- 41.7878, -87.5986,
- NULL, NULL),
-
-(CONVERT(NVARCHAR(36), NEWID()), 'Seed',
- 'Airport Volunteer Meetup',
- 'Volunteer meetup near O’Hare.',
- 'Volunteer',
- DATETIMEFROMPARTS(@y,@m,18,10,0,0,0),
- DATETIMEFROMPARTS(@y,@m,18,12,0,0,0),
- 'O’Hare Terminal 2',
- '10000 W O''Hare Ave', 'Chicago', 'IL', '60666',
- 41.9742, -87.9073,
- NULL, NULL),
-
-(CONVERT(NVARCHAR(36), NEWID()), 'Seed',
- 'Evanston Board Game Social',
- 'Board games + snacks.',
- 'Social',
- DATETIMEFROMPARTS(@y,@m,20,18,30,0,0),
- DATETIMEFROMPARTS(@y,@m,20,21,0,0,0),
- 'Coffee Lab',
- '1800 Maple Ave', 'Evanston', 'IL', '60201',
- 42.0447, -87.6895,
- NULL, NULL);
+INSERT INTO Users (UserId, Email)
+VALUES ('test-user', 'test@local');
 ```
 
-### March
+### Add March test data
 
 ```
 DECLARE @uid NVARCHAR(50)
@@ -188,14 +118,14 @@ SELECT * FROM (VALUES
 
 ('User',NULL,'Chicago Tech Meetup',
  'Monthly developer meetup focusing on .NET and AI.',
- 'Technology',
+ 'Study',
  '2026-03-05T18:00:00','2026-03-05T20:00:00',
  'Tech Hub Chicago','1871 W Sheridan Rd','Chicago','IL','60613',
  41.9532,-87.6533,'https://example.com/tech',@uid),
 
 ('System','sys001','Jazz Night Downtown',
  'Live jazz performance in the heart of Chicago.',
- 'Music',
+ 'Music and theather',
  '2026-03-08T19:00:00','2026-03-08T22:00:00',
  'Blue Note Lounge','212 W Chicago Ave','Chicago','IL','60654',
  41.8968,-87.6340,NULL,NULL),

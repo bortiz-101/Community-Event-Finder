@@ -365,7 +365,7 @@ function showDetail(ev) {
         `${ev.title || ""}
 
 When:
-${ev.startTime || ""}${ev.endTime ? " → " + ev.endTime : ""}
+${formatDateTime(ev.startTime)}${ev.endTime ? " → " + formatDateTime(ev.endTime) : ""}
 
 Where:
 ${ev.venueName || ""}
@@ -580,6 +580,22 @@ function escapeHtml(s) {
     }[c]));
 }
 
+function formatDateTime(dt) {
+    if (!dt) return "";
+
+    const d = new Date(dt);
+
+    return d.toLocaleString("en-US", {
+        //timeZone: "America/Chicago",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    });
+}
 
 // ================= INIT =================
 
