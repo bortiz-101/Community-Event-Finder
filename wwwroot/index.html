@@ -1,0 +1,246 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Community Events</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Cluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            display: flex;
+            height: 100vh;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        #right {
+            width: 420px;
+            border-left: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #toolbar {
+            padding: 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #list {
+            overflow: auto;
+            flex: 1;
+            min-height: 200px;
+        }
+
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+            .item:hover {
+                background: #f0f8ff;
+            }
+
+            .item.selected {
+                background: #cde8ff;
+                border-left: 4px solid #0078d7;
+            }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 290px;
+        }
+
+        .meta {
+            margin-top: 4px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 18px;
+            color: #bbb;
+        }
+
+            .star.on {
+                color: #f1c40f;
+            }
+
+        .trash {
+            cursor: pointer;
+            font-size: 16px;
+            opacity: .65;
+        }
+
+            .trash:hover {
+                opacity: 1;
+            }
+
+        textarea {
+            width: 100%;
+            height: 220px;
+            border: none;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        input, select, button {
+            margin: 4px 0;
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+        }
+
+        .searchWrap {
+            position: relative;
+        }
+
+        #searchBox {
+            padding-right: 28px;
+            height: 30px;
+        }
+
+        .clearBtn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #888;
+            font-weight: 700;
+        }
+
+            .clearBtn:hover {
+                color: #000;
+            }
+
+        .checkRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+            .checkRow input {
+                width: auto;
+                margin: 0;
+            }
+
+        .inlineRow {
+            display: flex;
+            gap: 6px;
+        }
+
+            .inlineRow input {
+                flex: 1;
+            }
+
+            .inlineRow button {
+                width: 90px;
+            }
+
+        .toolbarBtn {
+            width: 100%;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <div id="right">
+        <div id="toolbar">
+
+            <!-- SEARCH -->
+            <div class="searchWrap">
+                <input id="searchBox" placeholder="Search..." oninput="onSearch(this.value)">
+                <span class="clearBtn" onclick="clearSearch()">×</span>
+            </div>
+
+            <!-- RADIUS -->
+            <select onchange="setRadius(this.value)" style="height:30px">
+                <option>All distances</option>
+                <option>5 mi</option>
+                <option>10 mi</option>
+                <option>20 mi</option>
+            </select>
+
+            <!-- FAVORITES ONLY -->
+            <div class="checkRow">
+                <input type="checkbox" onchange="setFavoritesOnly(this.checked)">
+                <span>Only Starred</span>
+            </div>
+
+            <!-- DEFAULT ADDRESS -->
+            <div class="checkRow">
+                <input type="checkbox" id="defaultCheck" checked onchange="toggleDefaultCenter()">
+                <span>Use default address</span>
+            </div>
+
+            <!-- ADDRESS + APPLY SAME ROW -->
+            <div class="inlineRow">
+                <input id="centerBox" value="1032 W Sheridan Rd, Chicago, IL" disabled>
+                <button onclick="setCenterFromAddress(centerBox.value)">Apply</button>
+            </div>
+
+            <hr>
+
+            <!-- BUTTONS -->
+            <button class="toolbarBtn" onclick="showAll()">Show All Events</button>
+
+            <button class="toolbarBtn" onclick="openAddWindow()">＋ Add Event</button>
+
+            <button class="toolbarBtn" onclick="openCalendarWindow()">📅 Calendar</button>
+
+            <button class="toolbarBtn" onclick="window.open('/api/events/ics')">
+                ⭐ Export Starred events (ICS)
+            </button>
+
+        </div>
+
+        <div id="list"></div>
+
+<textarea id="detail" readonly>Select an event…</textarea>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>

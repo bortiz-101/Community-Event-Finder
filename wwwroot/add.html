@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Add Event</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            margin: 6px 0;
+            padding: 8px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        small {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Add Event</h2>
+
+    <input id="t" placeholder="Title">
+    <select id="c">
+        <option value="">Select Category</option>
+        <option>Music and theather</option>
+        <option>Game, party and social</option>
+        <option>Sports</option>
+        <option>Food</option>
+        <option>Health</option>
+        <option>Study</option>
+        <option>Arts</option>
+        <option>Business</option>
+        <option>Festival</option>
+        <option>Community</option>
+        <option>Career</option>
+        <option>Volunteer</option>
+        <option>Family</option>
+        <option>Other</option>
+    </select>
+
+    <input id="v" placeholder="Venue">
+    <input id="a" placeholder="Street Address">
+    <input id="city" placeholder="City">
+    <input id="s" placeholder="State (2 letters)">
+    <input id="z" placeholder="Zip (5 digits)">
+    <input id="url" placeholder="Event URL (optional)">
+
+    <label>Start</label>
+    <input id="st" type="datetime-local">
+
+    <label>End</label>
+    <input id="et" type="datetime-local">
+
+<textarea id="d" placeholder="Description"></textarea>
+
+    <button id="saveBtn">Save Event</button>
+
+    <script>
+
+        window.onload = function () {
+
+            const now = new Date();
+            const later = new Date(now.getTime() + 60 * 60 * 1000);
+
+            st.value = now.toISOString().slice(0, 16);
+            et.value = later.toISOString().slice(0, 16);
+
+            saveBtn.addEventListener("click", save);
+        };
+
+        async function save() {
+
+            if (!/^\d{5}$/.test(z.value)) {
+                alert("Zip must be 5 digits.");
+                return;
+            }
+
+            if (!/^[A-Z]{2}$/.test(s.value)) {
+                alert("State must be 2-letter uppercase code.");
+                return;
+            }
+
+            if (!t.value || !c.value || !v.value ||
+                !a.value || !city.value ||
+                !s.value || !z.value || !d.value) {
+                alert("Please fill all required fields.");
+                return;
+            }
+
+            const res = await fetch(window.location.origin + "/api/events", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: t.value,
+                    category: c.value,
+                    venue: v.value,
+                    address: a.value,
+                    city: city.value,
+                    state: s.value,
+                    zip: z.value,
+                    start: st.value,
+                    end: et.value,
+                    desc: d.value,
+                    url: url.value || null
+                })
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                alert(text || "Invalid or non-US address.");
+                return;
+            }
+
+            alert("Saved successfully");
+
+            if (window.opener && window.opener.loadEvents)
+                window.opener.loadEvents();
+
+            window.close();
+        }
+    </script>
+
+</body>
+</html>
