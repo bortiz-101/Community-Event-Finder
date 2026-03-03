@@ -17,5 +17,7 @@ namespace Community_Event_Finder.Models
 
         // Navigation property
         public EventItem? Event { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

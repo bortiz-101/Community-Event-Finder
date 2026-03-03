@@ -21,7 +21,8 @@ namespace Community_Event_Finder.Models
         [Required]
         public DateTime StartTime { get; set; }
 
-        public DateTime? EndTime { get; set; }
+        [Required]
+        public DateTime EndTime { get; set; }
 
         public string? VenueName { get; set; }
         public string? Address { get; set; }
@@ -36,5 +37,9 @@ namespace Community_Event_Finder.Models
         public string? Url { get; set; }
 
         public string? CreatedByUserId { get; set; }
+
+        public bool IsFavorite { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

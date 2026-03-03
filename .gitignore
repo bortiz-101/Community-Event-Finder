@@ -296,3 +296,5 @@ app.db
 
 # Connection strings and app passwords
 appsettings.Development.json
+appsettings.*.local.json
+appsettings.local.json

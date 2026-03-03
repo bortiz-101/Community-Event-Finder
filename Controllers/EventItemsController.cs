@@ -1,157 +1,122 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Community_Event_Finder.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using Community_Event_Finder.Models;
+using System.Text;
+using Community_Event_Finder.Data;
 
 namespace Community_Event_Finder.Controllers
 {
-    public class EventItemsController : Controller
+    [ApiController]
+    [Route("api/events")]
+    public class EventItemsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IEventRepository _repo;
 
-        public EventItemsController(ApplicationDbContext context)
+        public EventItemsController(IEventRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
-        // GET: EventItems
-        public async Task<IActionResult> Index()
+        // ================= GET ALL =================
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            return View(await _context.Events.ToListAsync());
+            return Ok(await _repo.GetEventsForCurrentMonthAsync());
         }
 
-        // GET: EventItems/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var eventItem = await _context.Events
-                .FirstOrDefaultAsync(m => m.EventId == id);
-            if (eventItem == null)
-            {
-                return NotFound();
-            }
-
-            return View(eventItem);
-        }
-
-        // GET: EventItems/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: EventItems/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // ================= ADD EVENT =================
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventId,Source,Title,Description,Category,StartTime,EndTime,VenueName,Address,City,State,Zip,Latitude,Longitude,Url,CreatedByUserId")] EventItem eventItem)
+        public async Task<IActionResult> Add([FromBody] AddEventDto dto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var start = dto.StartTime ?? DateTime.Now;
+            var end = dto.EndTime ?? start.AddHours(1);
+
+            try
             {
-                _context.Add(eventItem);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var id = await _repo.InsertEventAsync(
+                    dto.Title,
+                    dto.Category,
+                    start,
+                    end,
+                    dto.VenueName,
+                    dto.Address,
+                    dto.City,
+                    dto.State,
+                    dto.Zip,
+                    dto.Description,
+                    dto.Url);
+
+                return Ok(new { id });
             }
-            return View(eventItem);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Error: Duplicated event with same name, time and added by same user.");
+            }
         }
 
-        // GET: EventItems/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        // ================= FAVORITES =================
+        [HttpGet("favorites")]
+        public async Task<IActionResult> Favorites()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var eventItem = await _context.Events.FindAsync(id);
-            if (eventItem == null)
-            {
-                return NotFound();
-            }
-            return View(eventItem);
+            return Ok(await _repo.GetFavoriteEventsForCurrentMonthAsync());
         }
 
-        // POST: EventItems/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("EventId,Source,Title,Description,Category,StartTime,EndTime,VenueName,Address,City,State,Zip,Latitude,Longitude,Url,CreatedByUserId")] EventItem eventItem)
+        // ================= TOGGLE FAVORITE =================
+        [HttpPut("favorite/{id}")]
+        public async Task<IActionResult> ToggleFavorite(string id)
         {
-            if (id != eventItem.EventId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(eventItem);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EventItemExists(eventItem.EventId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(eventItem);
+            await _repo.ToggleFavoriteAsync(id);
+            return Ok();
         }
 
-        // GET: EventItems/Delete/5
+        // ================= DELETE =================
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                await _repo.DeleteEventAsync(id);
+                return Ok();
             }
-
-            var eventItem = await _context.Events
-                .FirstOrDefaultAsync(m => m.EventId == id);
-            if (eventItem == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine(ex);
+                return StatusCode(500, "Delete failed.");
             }
-
-            return View(eventItem);
         }
 
-        // POST: EventItems/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        // ================= EXPORT ICS =================
+        [HttpGet("ics")]
+        public async Task<IActionResult> ExportIcs()
         {
-            var eventItem = await _context.Events.FindAsync(id);
-            if (eventItem != null)
+            var events = await _repo.GetFavoriteEventsForCurrentMonthAsync();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("BEGIN:VCALENDAR");
+            sb.AppendLine("VERSION:2.0");
+
+            foreach (var e in events)
             {
-                _context.Events.Remove(eventItem);
+                sb.AppendLine("BEGIN:VEVENT");
+                sb.AppendLine($"SUMMARY:{e.Title}");
+                sb.AppendLine($"DTSTART:{e.StartTime:yyyyMMddTHHmmss}");
+                sb.AppendLine($"DTEND:{e.EndTime:yyyyMMddTHHmmss}");
+                sb.AppendLine("END:VEVENT");
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            sb.AppendLine("END:VCALENDAR");
 
-        private bool EventItemExists(string id)
-        {
-            return _context.Events.Any(e => e.EventId == id);
+            return File(
+                Encoding.UTF8.GetBytes(sb.ToString()),
+                "text/calendar",
+                "events.ics");
         }
     }
 }

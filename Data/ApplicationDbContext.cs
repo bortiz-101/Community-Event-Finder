@@ -22,6 +22,15 @@ namespace Community_Event_Finder.Data
             builder.Entity<EventItem>()
                 .HasKey(e => e.EventId);
 
+            // Configure decimal properties for SQL Server
+            builder.Entity<EventItem>()
+                .Property(e => e.Latitude)
+                .HasPrecision(10, 8);
+
+            builder.Entity<EventItem>()
+                .Property(e => e.Longitude)
+                .HasPrecision(10, 8);
+
             // Favorite -> Event relationship
             builder.Entity<Favorite>()
                 .HasOne(f => f.Event)
