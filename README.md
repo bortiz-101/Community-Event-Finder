@@ -5,66 +5,97 @@ COMP 425 Final Project
 
 ## Getting Started
 
-### Database Configuration (Required)
+### Prerequisites
 
-This project uses SQL Server. You **must** configure the database connection string before running the application.
+- **.NET 10 SDK** or later
+- **SQL Server** (local or remote instance)
+- **PowerShell** (for running setup script)
 
-#### Option 1: Automated Setup (Recommended)
+### Quick Setup
 
 Run the setup script from the project root:
+
 ```powershell
 .\setup-db.ps1
 ```
 
-The script will prompt you for:
-- SQL Server address/name
-- Username
-- Password
+The script will:
+1. **Remove .git directory** - Prevents accidental API key commits to version control
+2. **Configure database connection** - Prompts for SQL Server details
+3. **Configure external providers** - Lets you enable/disable event providers and enter API keys:
+   - PredictHQ (https://docs.predicthq.com/)
+   - Ticketmaster (https://developer.ticketmaster.com/)
+   - SeatGeek (https://platform.seatgeek.com/)
+4. **Save configuration** - Writes everything to `appsettings.Development.json`
 
-Then run migrations:
-```powershell
-dotnet ef database update
-```
+### After Running Setup
 
-#### Option 2: Manual Setup
-
-1. **Initialize User Secrets** (one-time setup):
-   ```powershell
-   dotnet user-secrets init
-   ```
-
-2. **Set your SQL Server connection string**:
-   ```powershell
-   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=YOUR_SERVER;Database=Community_Event_Finder;User Id=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=true;"
-   ```
-   Replace:
-   - `YOUR_SERVER` - your SQL Server instance name or address
-   - `YOUR_USERNAME` - SQL Server login username
-   - `YOUR_PASSWORD` - SQL Server login password
-
-3. **Apply database migrations**:
+1. **Apply database migrations**:
    ```powershell
    dotnet ef database update
    ```
 
-**Important:** Your connection string is stored locally in user secrets and will never be committed to Git. **Do not hardcode credentials in configuration files.**
+2. **Build the project**:
+   ```powershell
+   dotnet build
+   ```
 
-#### Understanding Configuration Sources
+3. **Run the application**:
+   ```powershell
+   dotnet run
+   ```
 
-The `appsettings.json` file contains a placeholder connection string for reference, but your actual credentials come from **User Secrets**, which override it. 
+### Configuration Files
 
-**Configuration Priority** (highest to lowest):
-1. **User Secrets** (local machine only, never committed to Git)
-2. **appsettings.Development.json** (development environment)
-3. **Environment Variables**
-4. **appsettings.json** (default/production fallback)
+- **appsettings.json** - Production defaults (placeholder values, safe to commit)
+- **appsettings.Development.json** - Local development config (⚠️ .gitignored, contains real secrets)
 
-When the application starts, it reads the connection string `DefaultConnection` from the highest priority source. So:
-- In **development**: Your user secrets connection string is used
-- In **production**: appsettings.json would be used (but you should use environment secrets there)
-- The placeholder in `appsettings.json` is just documentation and safe to commit
+**Important Security Notes:**
+- `appsettings.Development.json` is in `.gitignore` and will **NOT** be committed to Git
+- Never hardcode API keys in source files or version control
+- For production, use environment variables or Azure Key Vault
+- The setup script removes `.git` to prevent accidental commits of API keys
 
-This approach ensures real credentials are never in version control while keeping configuration centralized.
+### Manual Configuration (Alternative to Setup Script)
+
+If you prefer manual setup, edit `appsettings.Development.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=Community_Event_Finder;User Id=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=true;"
+  },
+  "ExternalProviders": {
+    "RefreshIntervalMinutes": 60,
+    "PredictHQ": {
+      "Enabled": false,
+      "EventsUrl": "https://api.predicthq.com/v1/events",
+      "ApiKey": ""
+    },
+    "Ticketmaster": {
+      "Enabled": false,
+      "EventsUrl": "https://app.ticketmaster.com/discovery/v2/events.json",
+      "ApiKey": ""
+    },
+    "SeatGeek": {
+      "Enabled": false,
+      "EventsUrl": "https://api.seatgeek.com/2/events",
+      "ClientId": ""
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}
+```
+
+Replace:
+- `YOUR_SERVER` - SQL Server instance name/address
+- `YOUR_USERNAME` - SQL Server username
+- `YOUR_PASSWORD` - SQL Server password
 
 ### Database Migrations
 
