@@ -21,11 +21,11 @@ namespace Community_Event_Finder.Data
 
         // ================= GET EVENTS =================
 
-        public async Task<List<EventItem>> GetEventsForCurrentMonthAsync()
+        public async Task<List<EventDto>> GetEventsForCurrentMonthAsync()
         {
             // Events in 1 month starting from today
             var start = DateTime.Today;
-            var end = start.AddMonths(1);
+            var end = start.AddMonths(12);
 
             var favoriteEventIds = await _context.Favorites
                 .Where(f => f.UserId == _userId)
@@ -35,32 +35,22 @@ namespace Community_Event_Finder.Data
             var results = await _context.Events
                 .Where(e => e.StartTime >= start && e.StartTime < end)
                 .OrderBy(e => e.StartTime)
-                .Select(e => new EventItem
-                {
-                    EventId = e.EventId,
-                    Source = e.Source,
-                    Title = e.Title,
-                    Description = e.Description,
-                    Category = e.Category,
-                    StartTime = e.StartTime,
-                    EndTime = e.EndTime,
-                    VenueName = e.VenueName,
-                    Address = e.Address,
-                    City = e.City,
-                    State = e.State,
-                    Zip = e.Zip,
-                    Latitude = e.Latitude,
-                    Longitude = e.Longitude,
-                    Url = e.Url,
-                    CreatedByUserId = e.CreatedByUserId,
-                    IsFavorite = favoriteEventIds.Contains(e.EventId)
-                })
+                .Include(e => e.Location)
+                .Include(e => e.Category)
                 .ToListAsync();
 
-            return results;
+            // Set IsFavorite flag and convert to DTO
+            var dtos = new List<EventDto>();
+            foreach (var evt in results)
+            {
+                evt.IsFavorite = favoriteEventIds.Contains(evt.EventId);
+                dtos.Add(EventDto.FromEventItem(evt));
+            }
+
+            return dtos;
         }
 
-        public async Task<List<EventItem>> GetFavoriteEventsForCurrentMonthAsync()
+        public async Task<List<EventDto>> GetFavoriteEventsForCurrentMonthAsync()
         {
             var all = await GetEventsForCurrentMonthAsync();
             return all.Where(e => e.IsFavorite).ToList();
@@ -80,9 +70,43 @@ namespace Community_Event_Finder.Data
             if (exists)
                 throw new Exception("An event with same title and time already exists.");
 
-            var (lat, lon) = await TryGeocodeAsync(address, city, state, zip);
-
             var newId = Guid.NewGuid().ToString();
+
+            // Create or get Location
+            Location? location = null;
+            if (!string.IsNullOrWhiteSpace(venue) || !string.IsNullOrWhiteSpace(address))
+            {
+                var (lat, lon) = await TryGeocodeAsync(address, city, state, zip);
+
+                location = new Location
+                {
+                    VenueName = venue ?? "",
+                    Address = address ?? "",
+                    City = city ?? "",
+                    State = state ?? "",
+                    Zip = zip ?? "",
+                    Latitude = lat,
+                    Longitude = lon
+                };
+
+                _context.Locations.Add(location);
+                await _context.SaveChangesAsync();
+            }
+
+            // Get or create Category
+            Category? categoryObj = null;
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                categoryObj = await _context.Categories
+                    .FirstOrDefaultAsync(c => c.Name == category);
+
+                if (categoryObj == null)
+                {
+                    categoryObj = new Category { Name = category };
+                    _context.Categories.Add(categoryObj);
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             var eventItem = new EventItem
             {
@@ -90,16 +114,10 @@ namespace Community_Event_Finder.Data
                 Source = "User",
                 Title = title,
                 Description = desc,
-                Category = category,
+                CategoryId = categoryObj?.CategoryId,
+                LocationId = location?.LocationId,
                 StartTime = start,
                 EndTime = end,
-                VenueName = venue,
-                Address = address,
-                City = city,
-                State = state,
-                Zip = zip,
-                Latitude = lat,
-                Longitude = lon,
                 Url = url,
                 CreatedByUserId = _userId
             };

@@ -4,8 +4,8 @@ namespace Community_Event_Finder.Data
 {
     public interface IEventRepository
     {
-        Task<List<EventItem>> GetEventsForCurrentMonthAsync();
-        Task<List<EventItem>> GetFavoriteEventsForCurrentMonthAsync();
+        Task<List<EventDto>> GetEventsForCurrentMonthAsync();
+        Task<List<EventDto>> GetFavoriteEventsForCurrentMonthAsync();
         Task ToggleFavoriteAsync(string eventId);
 
         Task<string> InsertEventAsync(
