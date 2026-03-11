@@ -1,0 +1,32 @@
+name: Code Analysis and Linting
+
+on:
+  push:
+    branches: [ main, "**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore Community-Event-Finder.csproj
+    
+    - name: Analyze with built-in analyzers
+      run: dotnet build Community-Event-Finder.csproj --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true /p:TreatWarningsAsErrors=true
+    
+    - name: Check code formatting
+      run: dotnet format Community-Event-Finder.csproj --verify-no-changes --verbosity diagnostic
+    
+    - name: Show formatting issues (if check failed)
+      if: failure()
+      run: dotnet format Community-Event-Finder.csproj --no-restore --verify-no-changes

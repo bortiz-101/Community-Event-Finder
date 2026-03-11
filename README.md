@@ -1,4 +1,8 @@
 # Community-Event-Finder
+
+[![Build and Test](https://github.com/bortiz-101/Community-Event-Finder/actions/workflows/build.yml/badge.svg)](https://github.com/bortiz-101/Community-Event-Finder/actions/workflows/build.yml)
+[![Code Analysis](https://github.com/bortiz-101/Community-Event-Finder/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/bortiz-101/Community-Event-Finder/actions/workflows/code-analysis.yml)
+
 ![Project UML Diagram](UML_DIAGRAM.drawio.svg)
 
 COMP 425 Final Project
