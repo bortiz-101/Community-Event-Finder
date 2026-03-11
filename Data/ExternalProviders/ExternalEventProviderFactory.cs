@@ -54,7 +54,7 @@ namespace Community_Event_Finder.Data.ExternalProviders
 
         public IExternalEventProvider? GetProvider(string providerName)
         {
-            return GetEnabledProviders().FirstOrDefault(p => 
+            return GetEnabledProviders().FirstOrDefault(p =>
                 p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
         }
     }

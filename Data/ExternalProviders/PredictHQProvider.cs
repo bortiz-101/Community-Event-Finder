@@ -54,7 +54,7 @@ namespace Community_Event_Finder.Data.ExternalProviders
                 }
 
                 // Setup auth header
-                client.DefaultRequestHeaders.Authorization = 
+                client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.ApiKey);
 
                 var response = await client.GetAsync(url, cancellationToken);

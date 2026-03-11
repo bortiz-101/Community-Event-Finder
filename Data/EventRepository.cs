@@ -9,7 +9,7 @@ namespace Community_Event_Finder.Data
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpFactory;
-        
+
         // TODO: Replace with actual logged-in user ID from User.FindFirst(ClaimTypes.NameIdentifier)
         private readonly string _userId = "test-user";
 
