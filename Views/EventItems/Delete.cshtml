@@ -33,7 +33,7 @@
             Category
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Category.Name)
+            @Html.DisplayFor(model => model.Category!.Name)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.StartTime)
@@ -51,43 +51,43 @@
             Venue
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.VenueName)
+            @Html.DisplayFor(model => model.Location!.VenueName)
         </dd>
         <dt class = "col-sm-2">
             Address
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.Address)
+            @Html.DisplayFor(model => model.Location!.Address)
         </dd>
         <dt class = "col-sm-2">
             City
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.City)
+            @Html.DisplayFor(model => model.Location!.City)
         </dd>
         <dt class = "col-sm-2">
             State
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.State)
+            @Html.DisplayFor(model => model.Location!.State)
         </dd>
         <dt class = "col-sm-2">
             Zip
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.Zip)
+            @Html.DisplayFor(model => model.Location!.Zip)
         </dd>
         <dt class = "col-sm-2">
             Latitude
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.Latitude)
+            @Html.DisplayFor(model => model.Location!.Latitude)
         </dd>
         <dt class = "col-sm-2">
             Longitude
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location.Longitude)
+            @Html.DisplayFor(model => model.Location!.Longitude)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Url)

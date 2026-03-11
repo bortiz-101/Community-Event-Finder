@@ -76,7 +76,7 @@ namespace Community_Event_Finder.Data
             Location? location = null;
             if (!string.IsNullOrWhiteSpace(venue) || !string.IsNullOrWhiteSpace(address))
             {
-                var (lat, lon) = await TryGeocodeAsync(address, city, state, zip);
+                var (lat, lon) = await TryGeocodeAsync(address ?? "", city ?? "", state ?? "", zip ?? "");
 
                 location = new Location
                 {
