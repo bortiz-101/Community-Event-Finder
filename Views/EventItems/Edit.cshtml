@@ -14,11 +14,6 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="EventId" />
             <div class="form-group">
-                <label asp-for="Source" class="control-label"></label>
-                <input asp-for="Source" class="form-control" />
-                <span asp-validation-for="Source" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
                 <input asp-for="Title" class="form-control" />
                 <span asp-validation-for="Title" class="text-danger"></span>
@@ -29,9 +24,28 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" />
-                <span asp-validation-for="Category" class="text-danger"></span>
+                <label for="LocationVenueName" class="control-label">Venue Name</label>
+                <input id="LocationVenueName" name="LocationVenueName" class="form-control" value="@Model?.Location?.VenueName" />
+            </div>
+            <div class="form-group">
+                <label for="LocationAddress" class="control-label">Address</label>
+                <input id="LocationAddress" name="LocationAddress" class="form-control" value="@Model?.Location?.Address" />
+            </div>
+            <div class="form-group">
+                <label for="LocationCity" class="control-label">City</label>
+                <input id="LocationCity" name="LocationCity" class="form-control" value="@Model?.Location?.City" />
+            </div>
+            <div class="form-group">
+                <label for="LocationState" class="control-label">State</label>
+                <input id="LocationState" name="LocationState" class="form-control" value="@Model?.Location?.State" />
+            </div>
+            <div class="form-group">
+                <label for="LocationZip" class="control-label">Zip</label>
+                <input id="LocationZip" name="LocationZip" class="form-control" value="@Model?.Location?.Zip" />
+            </div>
+            <div class="form-group">
+                <label for="CategoryName" class="control-label">Category</label>
+                <input id="CategoryName" name="CategoryName" class="form-control" value="@Model?.Category?.Name" />
             </div>
             <div class="form-group">
                 <label asp-for="StartTime" class="control-label"></label>
@@ -44,49 +58,9 @@
                 <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="VenueName" class="control-label"></label>
-                <input asp-for="VenueName" class="form-control" />
-                <span asp-validation-for="VenueName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="City" class="control-label"></label>
-                <input asp-for="City" class="form-control" />
-                <span asp-validation-for="City" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="State" class="control-label"></label>
-                <input asp-for="State" class="form-control" />
-                <span asp-validation-for="State" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Zip" class="control-label"></label>
-                <input asp-for="Zip" class="form-control" />
-                <span asp-validation-for="Zip" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Latitude" class="control-label"></label>
-                <input asp-for="Latitude" class="form-control" />
-                <span asp-validation-for="Latitude" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Longitude" class="control-label"></label>
-                <input asp-for="Longitude" class="form-control" />
-                <span asp-validation-for="Longitude" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Url" class="control-label"></label>
                 <input asp-for="Url" class="form-control" />
                 <span asp-validation-for="Url" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreatedByUserId" class="control-label"></label>
-                <input asp-for="CreatedByUserId" class="form-control" />
-                <span asp-validation-for="CreatedByUserId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
