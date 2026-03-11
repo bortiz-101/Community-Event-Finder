@@ -31,25 +31,25 @@
                 @Html.DisplayNameFor(model => model.EndTime)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.VenueName)
+                Venue
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Address)
+                Address
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.City)
+                City
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.State)
+                State
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Zip)
+                Zip
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Latitude)
+                Latitude
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Longitude)
+                Longitude
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Url)
@@ -73,7 +73,7 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Category)
+                @Html.DisplayFor(modelItem => item.Category.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.StartTime)
@@ -82,25 +82,25 @@
                 @Html.DisplayFor(modelItem => item.EndTime)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.VenueName)
+                @Html.DisplayFor(modelItem => item.Location.VenueName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Address)
+                @Html.DisplayFor(modelItem => item.Location.Address)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.City)
+                @Html.DisplayFor(modelItem => item.Location.City)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.State)
+                @Html.DisplayFor(modelItem => item.Location.State)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Zip)
+                @Html.DisplayFor(modelItem => item.Location.Zip)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Latitude)
+                @Html.DisplayFor(modelItem => item.Location.Latitude)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Longitude)
+                @Html.DisplayFor(modelItem => item.Location.Longitude)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Url)
