@@ -23,7 +23,7 @@ namespace Community_Event_Finder
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            
+
             // Configure JSON serialization to handle circular references and DTOs
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
