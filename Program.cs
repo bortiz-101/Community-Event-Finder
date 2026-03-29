@@ -42,6 +42,7 @@ namespace Community_Event_Finder
             // Register HTTP client factory and repository
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IEventRepository, EventRepository>();
+            builder.Services.AddScoped<INormalizationService, NormalizationService>();
 
             // Register external event providers
             builder.Services.AddScoped<PredictHQProvider>();
