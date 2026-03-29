@@ -6,6 +6,8 @@ namespace Community_Event_Finder.Data
     {
         Task<List<EventDto>> GetEventsForCurrentMonthAsync();
         Task<List<EventDto>> GetFavoriteEventsForCurrentMonthAsync();
+        Task<List<EventDto>> GetEventsByMonthAsync(int year, int month);
+        Task<EventDto?> GetEventByIdAsync(string eventId);
         Task ToggleFavoriteAsync(string eventId);
 
         Task<string> InsertEventAsync(
