@@ -11,6 +11,8 @@ namespace Community_Event_Finder.Data.ExternalProviders
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TicketmasterSettings _settings;
         private readonly ILogger<TicketmasterProvider> _logger;
+        private const int PageSize = 100; // Ticketmaster max is 50, but typically supports 100
+        private const int MaxPages = 100;
 
         public string ProviderName => "Ticketmaster";
 
@@ -43,26 +45,43 @@ namespace Community_Event_Finder.Data.ExternalProviders
                 }
 
                 var client = _httpClientFactory.CreateClient();
-                var url = _settings.EventsUrl;
+                int page = 0;
+                int pageCount = 0;
 
-                // Build query parameters
-                var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
-                queryParams.Add($"apikey={Uri.EscapeDataString(_settings.ApiKey ?? "")}");
-
-                url += "?" + string.Join("&", queryParams);
-
-                var response = await client.GetAsync(url, cancellationToken);
-
-                if (response.IsSuccessStatusCode)
+                while (pageCount < MaxPages)
                 {
-                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                    events = ParseTicketmasterResponse(content);
-                    _logger.LogInformation($"Retrieved {events.Count} events from Ticketmaster");
+                    var url = _settings.EventsUrl;
+                    var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
+                    queryParams.Add($"apikey={Uri.EscapeDataString(_settings.ApiKey ?? "")}");
+                    queryParams.Add($"page={page}");
+                    queryParams.Add($"size={PageSize}");
+
+                    url += "?" + string.Join("&", queryParams);
+
+                    var response = await client.GetAsync(url, cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                        var pageEvents = ParseTicketmasterResponse(content);
+
+                        if (pageEvents.Count == 0)
+                        {
+                            break; // No more events on this page
+                        }
+
+                        events.AddRange(pageEvents);
+                        page++;
+                        pageCount++;
+                    }
+                    else
+                    {
+                        _logger.LogError($"Ticketmaster API error on page {page}: {response.StatusCode} - {response.ReasonPhrase}");
+                        break; // Stop pagination on error
+                    }
                 }
-                else
-                {
-                    _logger.LogError($"Ticketmaster API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+
+                _logger.LogInformation($"Retrieved {events.Count} events from Ticketmaster ({pageCount} pages)");
             }
             catch (Exception ex)
             {

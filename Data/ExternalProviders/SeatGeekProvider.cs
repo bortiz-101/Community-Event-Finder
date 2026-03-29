@@ -11,6 +11,8 @@ namespace Community_Event_Finder.Data.ExternalProviders
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly SeatGeekSettings _settings;
         private readonly ILogger<SeatGeekProvider> _logger;
+        private const int PageSize = 100;
+        private const int MaxPages = 100;
 
         public string ProviderName => "SeatGeek";
 
@@ -43,26 +45,43 @@ namespace Community_Event_Finder.Data.ExternalProviders
                 }
 
                 var client = _httpClientFactory.CreateClient();
-                var url = _settings.EventsUrl;
+                int page = 1;
+                int pageCount = 0;
 
-                // Build query parameters
-                var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
-                queryParams.Add($"client_id={Uri.EscapeDataString(_settings.ClientId ?? "")}");
-
-                url += "?" + string.Join("&", queryParams);
-
-                var response = await client.GetAsync(url, cancellationToken);
-
-                if (response.IsSuccessStatusCode)
+                while (pageCount < MaxPages)
                 {
-                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                    events = ParseSeatGeekResponse(content);
-                    _logger.LogInformation($"Retrieved {events.Count} events from SeatGeek");
+                    var url = _settings.EventsUrl;
+                    var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
+                    queryParams.Add($"client_id={Uri.EscapeDataString(_settings.ClientId ?? "")}");
+                    queryParams.Add($"page={page}");
+                    queryParams.Add($"per_page={PageSize}");
+
+                    url += "?" + string.Join("&", queryParams);
+
+                    var response = await client.GetAsync(url, cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                        var pageEvents = ParseSeatGeekResponse(content);
+
+                        if (pageEvents.Count == 0)
+                        {
+                            break; // No more events on this page
+                        }
+
+                        events.AddRange(pageEvents);
+                        page++;
+                        pageCount++;
+                    }
+                    else
+                    {
+                        _logger.LogError($"SeatGeek API error on page {page}: {response.StatusCode} - {response.ReasonPhrase}");
+                        break; // Stop pagination on error
+                    }
                 }
-                else
-                {
-                    _logger.LogError($"SeatGeek API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+
+                _logger.LogInformation($"Retrieved {events.Count} events from SeatGeek ({pageCount} pages)");
             }
             catch (Exception ex)
             {
