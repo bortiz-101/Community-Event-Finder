@@ -36,6 +36,19 @@ let centerLon = -87.6586;
 
 let selectedId = null;
 
+function getCoords(ev) {
+    const lat = ev?.location?.latitude;
+    const lon = ev?.location?.longitude;
+    const latNum = typeof lat === "number" ? lat : parseFloat(lat);
+    const lonNum = typeof lon === "number" ? lon : parseFloat(lon);
+
+    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) {
+        return null;
+    }
+
+    return { lat: latNum, lon: lonNum };
+}
+
 function categoryColor(cat) {
 
     if (!cat) return "#7f8c8d";
@@ -108,16 +121,17 @@ function applyFilters() {
         const s = searchText.toLowerCase();
         filtered = filtered.filter(e =>
             (e.title || "").toLowerCase().includes(s) ||
-            (e.city || "").toLowerCase().includes(s) ||
-            (e.category || "").toLowerCase().includes(s)
+            (e.location?.city || "").toLowerCase().includes(s) ||
+            (e.category?.name || "").toLowerCase().includes(s)
         );
     }
 
     // radius
     if (radiusMiles > 0) {
         filtered = filtered.filter(ev => {
-            if (!ev.latitude) return false;
-            return distanceMiles(centerLat, centerLon, ev.latitude, ev.longitude) <= radiusMiles;
+            const coords = getCoords(ev);
+            if (!coords) return false;
+            return distanceMiles(centerLat, centerLon, coords.lat, coords.lon) <= radiusMiles;
         });
     }
 
@@ -260,12 +274,13 @@ function renderMap(events) {
     let bounds = [];
 
     events.forEach(ev => {
-        if (!ev.latitude) return;
+        const coords = getCoords(ev);
+        if (!coords) return;
 
-        const color = categoryColors[ev.category] || categoryColors.default;
+        const color = categoryColors[ev.category?.name] || categoryColors.default;
 
         const marker = L.marker(
-            [ev.latitude, ev.longitude],
+            [coords.lat, coords.lon],
             { icon: makeMarkerIcon(color) }
         );
 
@@ -275,7 +290,7 @@ function renderMap(events) {
         });
 
         clusterLayer.addLayer(marker);
-        bounds.push([ev.latitude, ev.longitude]);
+        bounds.push([coords.lat, coords.lon]);
     });
 
     if (bounds.length && selectedId === null)
@@ -300,13 +315,13 @@ function renderList(events) {
 
         div.innerHTML = `
       <div class="row">
-        <div class="title" style="color:${categoryColor(ev.category)}">${escapeHtml(ev.title || "")}</div>
+        <div class="title" style="color:${categoryColor(ev.category?.name)}">${escapeHtml(ev.title || "")}</div>
         <div class="actions">
           <span class="star ${isFav ? "on" : ""}" title="Favorite">★</span>
           ${canDelete ? `<span class="trash" title="Delete">🗑</span>` : ``}
         </div>
       </div>
-      <div class="meta">${escapeHtml((ev.city || "") + (ev.category ? " • " + ev.category : ""))}</div>
+      <div class="meta">${escapeHtml((ev.location?.city || "") + (ev.category?.name ? " • " + ev.category.name : ""))}</div>
     `;
 
         div.addEventListener("click", () => selectEvent(ev));
@@ -336,10 +351,11 @@ function selectEvent(ev) {
 
     showDetail(ev);
 
-    if (!ev.latitude || !ev.longitude) {
+    const coords = getCoords(ev);
+    if (!coords) {
         alert("This event has no valid coordinates. Map location cannot be shown.");
     } else {
-        map.setView([ev.latitude, ev.longitude], 14);
+        map.setView([coords.lat, coords.lon], 14);
     }
 
     scrollToListItem(ev.eventId);
@@ -368,12 +384,12 @@ When:
 ${formatDateTime(ev.startTime)}${ev.endTime ? " → " + formatDateTime(ev.endTime) : ""}
 
 Where:
-${ev.venueName || ""}
-${ev.address || ""}
-${ev.city || ""}, ${ev.state || ""} ${ev.zip || ""}
+${ev.location?.venueName || ""}
+${ev.location?.address || ""}
+${ev.location?.city || ""}, ${ev.location?.state || ""} ${ev.location?.zip || ""}
 
 Category:
-${ev.category || ""}
+${ev.category?.name || ""}
 
 ${ev.description || ""}
 
@@ -461,7 +477,7 @@ function openCalendarWindow() {
     return allEvents
       .filter(e => !showFav || e.isFavorite)
       .map(e => {
-        const c = categoryColor(e.category);
+        const c = categoryColor(e.category?.name);
         return {
           title: e.title,
           start: e.startTime,
@@ -473,12 +489,12 @@ function openCalendarWindow() {
           textColor: "#fff",
 
           extendedProps: {
-            venue: e.venueName,
-            address: e.address,
-            city: e.city,
-            state: e.state,
-            zip: e.zip,
-            category: e.category,
+            venue: e.location?.venueName,
+            address: e.location?.address,
+            city: e.location?.city,
+            state: e.location?.state,
+            zip: e.location?.zip,
+            category: e.category?.name,
             description: e.description
           }
         };
