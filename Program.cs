@@ -50,6 +50,9 @@ namespace Community_Event_Finder
             builder.Services.AddScoped<SeatGeekProvider>();
             builder.Services.AddScoped<IExternalEventProviderFactory, ExternalEventProviderFactory>();
 
+            // Register background event sync service
+            builder.Services.AddHostedService<EventSyncService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
