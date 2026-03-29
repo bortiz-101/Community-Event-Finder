@@ -30,7 +30,7 @@ namespace Community_Event_Finder.Data
         /// Returns both normalized events and counts of valid/invalid events.
         /// </summary>
         Task<(List<EventItem> NormalizedEvents, int ValidCount, int InvalidCount)> NormalizeEventsWithStatsAsync(
-            List<ExternalEventDto> externalEvents, 
+            List<ExternalEventDto> externalEvents,
             EventSourceType sourceType);
     }
 

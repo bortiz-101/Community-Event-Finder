@@ -31,8 +31,8 @@ namespace Community_Event_Finder.Data
             _logger.LogInformation("EventSyncService started");
 
             // Set up periodic sync (no initial sync to avoid startup delays)
-            var refreshIntervalMinutes = _settings.RefreshIntervalMinutes > 0 
-                ? _settings.RefreshIntervalMinutes 
+            var refreshIntervalMinutes = _settings.RefreshIntervalMinutes > 0
+                ? _settings.RefreshIntervalMinutes
                 : 60; // Default to 60 minutes if not configured
 
             var timerInterval = TimeSpan.FromMinutes(refreshIntervalMinutes);
@@ -118,9 +118,9 @@ namespace Community_Event_Finder.Data
 
                             // Normalize and track valid/invalid counts
                             _logger.LogInformation($"Normalizing {events.Count} events from {provider.ProviderName}...");
-                            var (normalizedEvents, validCount, invalidCount) = 
+                            var (normalizedEvents, validCount, invalidCount) =
                                 await normalizationService.NormalizeEventsWithStatsAsync(events, sourceType.Value);
-                            
+
                             _logger.LogInformation($"Normalization complete: {validCount} valid, {invalidCount} invalid");
                             summary.EventsValid += validCount;
                             summary.EventsInvalid += invalidCount;
@@ -148,7 +148,7 @@ namespace Community_Event_Finder.Data
 
                     // Upsert with duplicate tracking
                     _logger.LogInformation($"Upserting {allNormalizedEvents.Count} normalized events...");
-                    var (importedEventIds, duplicateCount) = 
+                    var (importedEventIds, duplicateCount) =
                         await eventRepository.UpsertManyWithStatsAsync(allNormalizedEvents);
 
                     summary.EventsUpserted = importedEventIds.Count;
@@ -164,7 +164,7 @@ namespace Community_Event_Finder.Data
                             var inactiveCount = await eventRepository.MarkExternalEventsAsInactiveAsync(
                                 sourceType.Value,
                                 DateTime.UtcNow.AddDays(-1));
-                            
+
                             summary.EventsMarkedInactive += inactiveCount;
                             if (inactiveCount > 0)
                                 _logger.LogInformation($"Marked {inactiveCount} events as inactive from {provider}");
