@@ -11,17 +11,9 @@ namespace Community_Event_Finder.Models
         public string? Url { get; set; }
         public bool IsFavorite { get; set; }
 
-        // Flattened Location properties
-        public string? VenueName { get; set; }
-        public string? Address { get; set; }
-        public string? City { get; set; }
-        public string? State { get; set; }
-        public string? Zip { get; set; }
-        public decimal? Latitude { get; set; }
-        public decimal? Longitude { get; set; }
-
-        // Flattened Category property
-        public string? Category { get; set; }
+        // Nested DTOs instead of flattened properties
+        public LocationDto? Location { get; set; }
+        public CategoryDto? Category { get; set; }
 
         public static EventDto FromEventItem(EventItem eventItem)
         {
@@ -35,14 +27,8 @@ namespace Community_Event_Finder.Models
                 EndTime = eventItem.EndTime,
                 Url = eventItem.Url,
                 IsFavorite = eventItem.IsFavorite,
-                VenueName = eventItem.Location?.VenueName,
-                Address = eventItem.Location?.Address,
-                City = eventItem.Location?.City,
-                State = eventItem.Location?.State,
-                Zip = eventItem.Location?.Zip,
-                Latitude = eventItem.Location?.Latitude,
-                Longitude = eventItem.Location?.Longitude,
-                Category = eventItem.Category?.Name
+                Location = eventItem.Location != null ? LocationDto.FromLocation(eventItem.Location) : null,
+                Category = eventItem.Category != null ? CategoryDto.FromCategory(eventItem.Category) : null
             };
         }
     }
