@@ -30,6 +30,7 @@ let allEvents = [];
 let favoritesOnly = false;
 let searchText = "";
 let radiusMiles = 0;
+let selectedMonth = null;  // Format: "2026-03"
 
 let centerLat = 41.9975;
 let centerLon = -87.6586;
@@ -73,8 +74,14 @@ function categoryColor(cat) {
 
 // ================= LOAD =================
 
-async function loadEvents() {
-    const url = favoritesOnly ? "/api/events/favorites" : "/api/events";
+async function loadEvents(month = null) {
+    let url = "/api/events";
+    
+    // Use month filter if provided
+    if (month) {
+        url += "?month=" + encodeURIComponent(month);
+    }
+    
     const res = await fetch(url);
     allEvents = await res.json();
     applyFilters();
@@ -169,6 +176,25 @@ function setRadius(val) {
     radiusMiles = (val === "All radius" || val === "All") ? 0 : parseFloat(val);
     drawCircle();
     applyFilters();
+}
+
+
+// ================= MONTH FILTER =================
+
+function setMonth(val) {
+    // val is in format "2026-03" from HTML5 month input
+    if (val) {
+        selectedMonth = val;
+        const [year, month] = val.split("-");
+        loadEvents(val);
+    }
+}
+
+function clearMonth() {
+    selectedMonth = null;
+    const monthInput = document.getElementById("monthInput");
+    if (monthInput) monthInput.value = "";
+    loadEvents();
 }
 
 
@@ -691,5 +717,7 @@ window.openCalendarWindow = openCalendarWindow;
 window.setCenterFromAddress = setCenterFromAddress;
 window.setRadius = setRadius;
 window.onSearch = onSearch;
+window.setMonth = setMonth;
+window.clearMonth = clearMonth;
 window.toggleDefaultCenter = toggleDefaultCenter;
 window.showAll = showAll;

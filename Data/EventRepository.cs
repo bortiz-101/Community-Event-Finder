@@ -56,6 +56,60 @@ namespace Community_Event_Finder.Data
             return all.Where(e => e.IsFavorite).ToList();
         }
 
+        public async Task<List<EventDto>> GetEventsByMonthAsync(int year, int month)
+        {
+            // Validate month
+            if (month < 1 || month > 12)
+                throw new ArgumentException("Month must be between 1 and 12.", nameof(month));
+
+            // Calculate start and end dates for the given month
+            var start = new DateTime(year, month, 1);
+            var end = start.AddMonths(1);
+
+            var favoriteEventIds = await _context.Favorites
+                .Where(f => f.UserId == _userId)
+                .Select(f => f.EventId)
+                .ToListAsync();
+
+            var results = await _context.Events
+                .Where(e => e.StartTime >= start && e.StartTime < end)
+                .OrderBy(e => e.StartTime)
+                .Include(e => e.Location)
+                .Include(e => e.Category)
+                .ToListAsync();
+
+            // Set IsFavorite flag and convert to DTO
+            var dtos = new List<EventDto>();
+            foreach (var evt in results)
+            {
+                evt.IsFavorite = favoriteEventIds.Contains(evt.EventId);
+                dtos.Add(EventDto.FromEventItem(evt));
+            }
+
+            return dtos;
+        }
+
+        public async Task<EventDto?> GetEventByIdAsync(string eventId)
+        {
+            var evt = await _context.Events
+                .AsNoTracking()
+                .Where(e => e.EventId == eventId)
+                .Include(e => e.Location)
+                .Include(e => e.Category)
+                .FirstOrDefaultAsync();
+
+            if (evt == null)
+                return null;
+
+            var favoriteEventIds = await _context.Favorites
+                .Where(f => f.UserId == _userId)
+                .Select(f => f.EventId)
+                .ToListAsync();
+
+            evt.IsFavorite = favoriteEventIds.Contains(evt.EventId);
+            return EventDto.FromEventItem(evt);
+        }
+
         // ================= INSERT =================
 
         public async Task<string> InsertEventAsync(

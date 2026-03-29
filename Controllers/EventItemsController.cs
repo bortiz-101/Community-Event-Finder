@@ -16,11 +16,57 @@ namespace Community_Event_Finder.Controllers
             _repo = repo;
         }
 
-        // ================= GET ALL =================
+        // ================= GET ALL / BY MONTH =================
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? month)
         {
-            return Ok(await _repo.GetEventsForCurrentMonthAsync());
+            try
+            {
+                // If month parameter is provided, parse it and get events for that month
+                if (!string.IsNullOrWhiteSpace(month))
+                {
+                    // Expected format: YYYY-MM
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(month, @"^\d{4}-\d{2}$"))
+                        return BadRequest("Month parameter must be in format YYYY-MM (e.g., 2026-03).");
+
+                    var parts = month.Split('-');
+                    if (!int.TryParse(parts[0], out var year) || !int.TryParse(parts[1], out var monthNum))
+                        return BadRequest("Invalid year or month value.");
+
+                    var events = await _repo.GetEventsByMonthAsync(year, monthNum);
+                    return Ok(events);
+                }
+
+                // Default: return events for current month (+ 12 months from today)
+                return Ok(await _repo.GetEventsForCurrentMonthAsync());
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // ================= GET BY ID =================
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(id))
+                    return BadRequest("Event ID cannot be empty.");
+
+                var eventDto = await _repo.GetEventByIdAsync(id);
+
+                if (eventDto == null)
+                    return NotFound(new { error = $"Event with ID '{id}' not found." });
+
+                return Ok(eventDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Error retrieving event.");
+            }
         }
 
         // ================= ADD EVENT =================

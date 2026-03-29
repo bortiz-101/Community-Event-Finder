@@ -201,6 +201,13 @@
                 <option>20 mi</option>
             </select>
 
+            <!-- MONTH FILTER -->
+            <label style="display: block; margin: 6px 0 2px 0; font-weight: 700; font-size: 13px;">Month (optional)</label>
+            <div class="inlineRow">
+                <input id="monthInput" type="month" onchange="setMonth(this.value)">
+                <button onclick="clearMonth()" style="width: 85px;">Clear</button>
+            </div>
+
             <!-- FAVORITES ONLY -->
             <div class="checkRow">
                 <input type="checkbox" onchange="setFavoritesOnly(this.checked)">
