@@ -176,6 +176,31 @@
         .toolbarBtn {
             width: 100%;
             margin-top: 6px;
+            background: #0078d7;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .toolbarBtn:hover:not(:disabled) {
+            background: #005a9e;
+        }
+
+        .toolbarBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        button[onclick="syncExternalEvents()"] {
+            background: #27ae60;
+        }
+
+        button[onclick="syncExternalEvents()"]:hover:not(:disabled) {
+            background: #229954;
         }
     </style>
 </head>
@@ -208,6 +233,12 @@
                 <button onclick="clearMonth()" style="width: 85px;">Clear</button>
             </div>
 
+            <!-- SOURCE FILTER -->
+            <label style="display: block; margin: 6px 0 2px 0; font-weight: 700; font-size: 13px;">Source (optional)</label>
+            <select id="sourceSelect" onchange="setSource(this.value)" style="height:30px">
+                <option value="">All sources</option>
+            </select>
+
             <!-- FAVORITES ONLY -->
             <div class="checkRow">
                 <input type="checkbox" onchange="setFavoritesOnly(this.checked)">
@@ -230,6 +261,8 @@
 
             <!-- BUTTONS -->
             <button class="toolbarBtn" onclick="showAll()">Show All Events</button>
+
+            <button class="toolbarBtn" onclick="syncExternalEvents()" id="syncBtn" style="background: #27ae60;">⟳ Sync Data</button>
 
             <button class="toolbarBtn" onclick="openAddWindow()">＋ Add Event</button>
 
