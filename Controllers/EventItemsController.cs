@@ -56,7 +56,7 @@ namespace Community_Event_Finder.Controllers
                     return BadRequest("Event ID cannot be empty.");
 
                 var eventDto = await _repo.GetEventByIdAsync(id);
-                
+
                 if (eventDto == null)
                     return NotFound(new { error = $"Event with ID '{id}' not found." });
 
