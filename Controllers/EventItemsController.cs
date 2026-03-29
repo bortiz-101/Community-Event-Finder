@@ -88,6 +88,8 @@ namespace Community_Event_Finder.Controllers
         [HttpPost("sync")]
         public async Task<IActionResult> SyncExternalEvents()
         {
+            var summary = new EventSyncSummary();
+
             try
             {
                 _logger.LogInformation("Starting external event sync...");
@@ -97,7 +99,8 @@ namespace Community_Event_Finder.Controllers
                 if (!providers.Any())
                 {
                     _logger.LogWarning("No external providers enabled");
-                    return Ok(new { message = "No providers enabled", imported = 0 });
+                    summary.Message = "No providers enabled";
+                    return Ok(summary);
                 }
 
                 var allNormalizedEvents = new List<EventItem>();
@@ -108,11 +111,15 @@ namespace Community_Event_Finder.Controllers
                     try
                     {
                         _logger.LogInformation($"Fetching events from {provider.ProviderName}...");
+                        summary.ProvidersProcessed.Add(provider.ProviderName);
+
                         var events = await provider.GetEventsAsync(
                             latitude: _settings.SearchLatitude,
                             longitude: _settings.SearchLongitude,
                             radiusMiles: _settings.SearchRadiusMiles);
+
                         _logger.LogInformation($"Retrieved {events.Count} events from {provider.ProviderName}");
+                        summary.EventsFetched += events.Count;
 
                         if (!events.Any())
                             continue;
@@ -122,36 +129,70 @@ namespace Community_Event_Finder.Controllers
                         if (sourceType == null)
                         {
                             _logger.LogWarning($"Unknown provider name: {provider.ProviderName}, skipping");
+                            summary.ErrorsEncountered[$"{provider.ProviderName}_Unknown"] = "Unknown provider name";
                             continue;
                         }
 
+                        // Normalize and track valid/invalid counts
                         _logger.LogInformation($"Normalizing {events.Count} events from {provider.ProviderName}...");
-                        var normalizedEvents = await _normalizationService.NormalizeEventsAsync(events, sourceType.Value);
-                        _logger.LogInformation($"Normalized {normalizedEvents.Count} events from {provider.ProviderName}");
+                        var (normalizedEvents, validCount, invalidCount) =
+                            await _normalizationService.NormalizeEventsWithStatsAsync(events, sourceType.Value);
+
+                        _logger.LogInformation($"Normalization complete: {validCount} valid, {invalidCount} invalid");
+                        summary.EventsValid += validCount;
+                        summary.EventsInvalid += invalidCount;
+
                         allNormalizedEvents.AddRange(normalizedEvents);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError($"Error fetching/processing from {provider.ProviderName}: {ex.Message}");
+                        summary.ErrorsEncountered[provider.ProviderName] = ex.Message;
                     }
                 }
 
                 if (!allNormalizedEvents.Any())
                 {
                     _logger.LogWarning("No events to import after normalization");
-                    return Ok(new { message = "No events ready for import", imported = 0 });
+                    summary.Message = "No valid events to import";
+                    return Ok(summary);
                 }
 
+                // Upsert with duplicate tracking
                 _logger.LogInformation($"Upserting {allNormalizedEvents.Count} normalized events...");
-                var importedEventIds = await _repo.UpsertManyAsync(allNormalizedEvents);
+                var (importedEventIds, duplicateCount) =
+                    await _repo.UpsertManyWithStatsAsync(allNormalizedEvents);
 
-                _logger.LogInformation($"Successfully imported {importedEventIds.Count} events");
-                return Ok(new { message = "Sync completed successfully", imported = importedEventIds.Count });
+                summary.EventsUpserted = importedEventIds.Count;
+                summary.EventsDuplicate = duplicateCount;
+                _logger.LogInformation($"Upsert complete: {importedEventIds.Count} events upserted, {duplicateCount} duplicates detected");
+
+                // Mark old events from all providers as inactive
+                foreach (var providerName in summary.ProvidersProcessed)
+                {
+                    var sourceType = GetEventSourceType(providerName);
+                    if (sourceType.HasValue)
+                    {
+                        var inactiveCount = await _repo.MarkExternalEventsAsInactiveAsync(
+                            sourceType.Value,
+                            DateTime.UtcNow.AddDays(-1));
+
+                        summary.EventsMarkedInactive += inactiveCount;
+                        if (inactiveCount > 0)
+                            _logger.LogInformation($"Marked {inactiveCount} events as inactive from {providerName}");
+                    }
+                }
+
+                summary.Message = $"Sync completed: {summary.EventsUpserted} events processed from {summary.ProvidersProcessed.Count} providers";
+                _logger.LogInformation($"Event sync completed successfully");
+                return Ok(summary);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error during external event sync: {ex.Message}");
-                return StatusCode(500, new { error = "Sync failed", details = ex.Message });
+                summary.ErrorsEncountered["Unexpected"] = ex.Message;
+                summary.Message = "Sync failed with error";
+                return StatusCode(500, summary);
             }
         }
 

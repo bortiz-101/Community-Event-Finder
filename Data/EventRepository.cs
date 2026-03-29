@@ -381,5 +381,100 @@ namespace Community_Event_Finder.Data
             await _context.SaveChangesAsync();
             return result;
         }
+
+        /// <summary>
+        /// Batch upsert events and track duplicate count.
+        /// </summary>
+        public async Task<(List<string> UpsertedEventIds, int DuplicateCount)> UpsertManyWithStatsAsync(List<EventItem> events)
+        {
+            var upsertedIds = new List<string>();
+            int duplicateCount = 0;
+
+            if (events == null || events.Count == 0)
+                return (upsertedIds, duplicateCount);
+
+            foreach (var incomingEvent in events)
+            {
+                EventItem? existing = null;
+
+                // Try primary deduplication key: (ExternalEventId, SourceType)
+                if (!string.IsNullOrWhiteSpace(incomingEvent.ExternalEventId) &&
+                    incomingEvent.ExternalEventSourceType.HasValue)
+                {
+                    existing = await GetEventByExternalIdAsync(
+                        incomingEvent.ExternalEventId,
+                        incomingEvent.ExternalEventSourceType.Value);
+                }
+
+                // Try secondary deduplication key if primary didn't match
+                if (existing == null && !string.IsNullOrWhiteSpace(incomingEvent.Title))
+                {
+                    var venueName = incomingEvent.Location?.VenueName;
+                    existing = await GetEventBySecondaryKeyAsync(
+                        incomingEvent.Title,
+                        incomingEvent.StartTime,
+                        venueName);
+                }
+
+                if (existing != null)
+                {
+                    // This is a duplicate - count it
+                    duplicateCount++;
+
+                    // Update existing event
+                    existing.Title = incomingEvent.Title;
+                    existing.Description = incomingEvent.Description;
+                    existing.StartTime = incomingEvent.StartTime;
+                    existing.EndTime = incomingEvent.EndTime;
+                    existing.Url = incomingEvent.Url;
+                    existing.LocationId = incomingEvent.LocationId;
+                    existing.CategoryId = incomingEvent.CategoryId;
+                    existing.ExternalEventId = incomingEvent.ExternalEventId;
+                    existing.ExternalEventSourceType = incomingEvent.ExternalEventSourceType;
+                    existing.IsActive = true; // Mark as active since we're seeing it again
+
+                    _context.Events.Update(existing);
+                    upsertedIds.Add(existing.EventId);
+                }
+                else
+                {
+                    // Insert new event
+                    if (string.IsNullOrWhiteSpace(incomingEvent.EventId))
+                        incomingEvent.EventId = Guid.NewGuid().ToString();
+
+                    incomingEvent.IsActive = true;
+                    _context.Events.Add(incomingEvent);
+                    upsertedIds.Add(incomingEvent.EventId);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return (upsertedIds, duplicateCount);
+        }
+
+        /// <summary>
+        /// Marks external events from a specific provider as inactive if they're older than the provided date.
+        /// </summary>
+        public async Task<int> MarkExternalEventsAsInactiveAsync(EventSourceType sourceType, DateTime beforeDate)
+        {
+            var eventsToDeactivate = await _context.Events
+                .Where(e => e.ExternalEventSourceType == sourceType &&
+                           e.EndTime < beforeDate &&
+                           e.IsActive)
+                .ToListAsync();
+
+            int count = 0;
+            foreach (var evt in eventsToDeactivate)
+            {
+                evt.IsActive = false;
+                _context.Events.Update(evt);
+                count++;
+            }
+
+            if (count > 0)
+                await _context.SaveChangesAsync();
+
+            return count;
+        }
     }
 }

@@ -42,6 +42,8 @@ namespace Community_Event_Finder.Models
 
         public bool IsFavorite { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
         // Navigation properties
         public Category? Category { get; set; }
 

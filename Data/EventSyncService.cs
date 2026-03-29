@@ -1,6 +1,7 @@
 using Community_Event_Finder.Data.ExternalProviders;
 using Community_Event_Finder.Models;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Community_Event_Finder.Data
 {
@@ -60,8 +61,13 @@ namespace Community_Event_Finder.Data
             }
         }
 
-        private async Task SyncEventsAsync(CancellationToken stoppingToken)
+        /// <summary>
+        /// Synchronizes events from all enabled providers and returns a summary of the operation.
+        /// </summary>
+        private async Task<EventSyncSummary> SyncEventsAsync(CancellationToken stoppingToken)
         {
+            var summary = new EventSyncSummary();
+
             using (var scope = _serviceProvider.CreateScope())
             {
                 var providerFactory = scope.ServiceProvider.GetRequiredService<IExternalEventProviderFactory>();
@@ -75,7 +81,8 @@ namespace Community_Event_Finder.Data
                     if (!providers.Any())
                     {
                         _logger.LogWarning("No external providers enabled for sync");
-                        return;
+                        summary.Message = "No providers enabled";
+                        return summary;
                     }
 
                     var allNormalizedEvents = new List<EventItem>();
@@ -86,12 +93,16 @@ namespace Community_Event_Finder.Data
                         try
                         {
                             _logger.LogInformation($"Fetching events from {provider.ProviderName}...");
+                            summary.ProvidersProcessed.Add(provider.ProviderName);
+
                             var events = await provider.GetEventsAsync(
                                 latitude: _settings.SearchLatitude,
                                 longitude: _settings.SearchLongitude,
                                 radiusMiles: _settings.SearchRadiusMiles,
                                 cancellationToken: stoppingToken);
+
                             _logger.LogInformation($"Retrieved {events.Count} events from {provider.ProviderName}");
+                            summary.EventsFetched += events.Count;
 
                             if (!events.Any())
                                 continue;
@@ -101,12 +112,19 @@ namespace Community_Event_Finder.Data
                             if (sourceType == null)
                             {
                                 _logger.LogWarning($"Unknown provider name: {provider.ProviderName}, skipping");
+                                summary.ErrorsEncountered[$"{provider.ProviderName}_Unknown"] = "Unknown provider name";
                                 continue;
                             }
 
+                            // Normalize and track valid/invalid counts
                             _logger.LogInformation($"Normalizing {events.Count} events from {provider.ProviderName}...");
-                            var normalizedEvents = await normalizationService.NormalizeEventsAsync(events, sourceType.Value);
-                            _logger.LogInformation($"Normalized {normalizedEvents.Count} events from {provider.ProviderName}");
+                            var (normalizedEvents, validCount, invalidCount) = 
+                                await normalizationService.NormalizeEventsWithStatsAsync(events, sourceType.Value);
+                            
+                            _logger.LogInformation($"Normalization complete: {validCount} valid, {invalidCount} invalid");
+                            summary.EventsValid += validCount;
+                            summary.EventsInvalid += invalidCount;
+
                             allNormalizedEvents.AddRange(normalizedEvents);
                         }
                         catch (OperationCanceledException)
@@ -117,29 +135,59 @@ namespace Community_Event_Finder.Data
                         catch (Exception ex)
                         {
                             _logger.LogError($"Error fetching/processing from {provider.ProviderName}: {ex.Message}");
+                            summary.ErrorsEncountered[provider.ProviderName] = ex.Message;
                         }
                     }
 
                     if (!allNormalizedEvents.Any())
                     {
                         _logger.LogWarning("No events to import after normalization");
-                        return;
+                        summary.Message = "No valid events to import";
+                        return summary;
                     }
 
+                    // Upsert with duplicate tracking
                     _logger.LogInformation($"Upserting {allNormalizedEvents.Count} normalized events...");
-                    var importedEventIds = await eventRepository.UpsertManyAsync(allNormalizedEvents);
+                    var (importedEventIds, duplicateCount) = 
+                        await eventRepository.UpsertManyWithStatsAsync(allNormalizedEvents);
 
-                    _logger.LogInformation($"Successfully synced {importedEventIds.Count} events from external providers");
+                    summary.EventsUpserted = importedEventIds.Count;
+                    summary.EventsDuplicate = duplicateCount;
+                    _logger.LogInformation($"Upsert complete: {importedEventIds.Count} events upserted, {duplicateCount} duplicates detected");
+
+                    // Mark old events from all providers as inactive
+                    foreach (var provider in summary.ProvidersProcessed)
+                    {
+                        var sourceType = GetEventSourceType(provider);
+                        if (sourceType.HasValue)
+                        {
+                            var inactiveCount = await eventRepository.MarkExternalEventsAsInactiveAsync(
+                                sourceType.Value,
+                                DateTime.UtcNow.AddDays(-1));
+                            
+                            summary.EventsMarkedInactive += inactiveCount;
+                            if (inactiveCount > 0)
+                                _logger.LogInformation($"Marked {inactiveCount} events as inactive from {provider}");
+                        }
+                    }
+
+                    summary.Message = $"Sync completed: {summary.EventsUpserted} events processed";
+                    _logger.LogInformation($"Event sync completed successfully. Summary: {JsonSerializer.Serialize(summary)}");
                 }
                 catch (OperationCanceledException)
                 {
                     _logger.LogInformation("Sync service is shutting down");
+                    summary.Message = "Sync cancelled";
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Unexpected error during event sync: {ex.Message}");
+                    summary.ErrorsEncountered["Unexpected"] = ex.Message;
+                    summary.Message = "Sync failed with unexpected error";
                 }
             }
+
+            return summary;
         }
 
         /// <summary>

@@ -43,7 +43,14 @@ namespace Community_Event_Finder.Data
         /// Uses deduplication logic:
         /// - Primary: (ExternalEventId, SourceType)
         /// - Secondary fallback: (Title, StartTime, VenueName)
+        /// Returns a tuple with: (UpsertedEventIds, DuplicateCount)
         /// </summary>
-        Task<List<string>> UpsertManyAsync(List<EventItem> events);
+        Task<(List<string> UpsertedEventIds, int DuplicateCount)> UpsertManyWithStatsAsync(List<EventItem> events);
+
+        /// <summary>
+        /// Marks external events from a specific provider as inactive if they're older than the provided date.
+        /// Returns the count of events marked as inactive.
+        /// </summary>
+        Task<int> MarkExternalEventsAsInactiveAsync(EventSourceType sourceType, DateTime beforeDate);
     }
 }
