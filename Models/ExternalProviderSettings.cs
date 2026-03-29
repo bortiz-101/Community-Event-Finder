@@ -16,6 +16,12 @@ namespace Community_Event_Finder.Models
 
         // Global refresh interval in minutes
         public int RefreshIntervalMinutes { get; set; } = 60;
+
+        // Location settings for event searches
+        // Use null to search globally, or set to specific coordinates to limit searches
+        public decimal? SearchLatitude { get; set; }
+        public decimal? SearchLongitude { get; set; }
+        public double? SearchRadiusMiles { get; set; }
     }
 
     // PredictHQ API configuration
