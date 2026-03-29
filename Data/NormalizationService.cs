@@ -24,6 +24,14 @@ namespace Community_Event_Finder.Data
         /// Batch normalize multiple external events.
         /// </summary>
         Task<List<EventItem>> NormalizeEventsAsync(List<ExternalEventDto> externalEvents, EventSourceType sourceType);
+
+        /// <summary>
+        /// Batch normalize events and track validation statistics.
+        /// Returns both normalized events and counts of valid/invalid events.
+        /// </summary>
+        Task<(List<EventItem> NormalizedEvents, int ValidCount, int InvalidCount)> NormalizeEventsWithStatsAsync(
+            List<ExternalEventDto> externalEvents,
+            EventSourceType sourceType);
     }
 
     public class NormalizationService : INormalizationService
@@ -110,6 +118,34 @@ namespace Community_Event_Finder.Data
             }
 
             return normalizedEvents;
+        }
+
+        /// <summary>
+        /// Batch normalize events and track validation statistics.
+        /// </summary>
+        public async Task<(List<EventItem> NormalizedEvents, int ValidCount, int InvalidCount)> NormalizeEventsWithStatsAsync(
+            List<ExternalEventDto> externalEvents,
+            EventSourceType sourceType)
+        {
+            var normalizedEvents = new List<EventItem>();
+            int validCount = 0;
+            int invalidCount = 0;
+
+            foreach (var externalEvent in externalEvents)
+            {
+                var normalizedEvent = await NormalizeEventAsync(externalEvent, sourceType);
+                if (normalizedEvent != null)
+                {
+                    normalizedEvents.Add(normalizedEvent);
+                    validCount++;
+                }
+                else
+                {
+                    invalidCount++;
+                }
+            }
+
+            return (normalizedEvents, validCount, invalidCount);
         }
 
         /// <summary>

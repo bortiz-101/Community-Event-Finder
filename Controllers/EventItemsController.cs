@@ -2,6 +2,8 @@
 using Community_Event_Finder.Models;
 using System.Text;
 using Community_Event_Finder.Data;
+using Community_Event_Finder.Data.ExternalProviders;
+using Microsoft.Extensions.Options;
 
 namespace Community_Event_Finder.Controllers
 {
@@ -10,10 +12,23 @@ namespace Community_Event_Finder.Controllers
     public class EventItemsController : ControllerBase
     {
         private readonly IEventRepository _repo;
+        private readonly IExternalEventProviderFactory _providerFactory;
+        private readonly INormalizationService _normalizationService;
+        private readonly ILogger<EventItemsController> _logger;
+        private readonly ExternalProvidersSettings _settings;
 
-        public EventItemsController(IEventRepository repo)
+        public EventItemsController(
+            IEventRepository repo,
+            IExternalEventProviderFactory providerFactory,
+            INormalizationService normalizationService,
+            ILogger<EventItemsController> logger,
+            IOptions<ExternalProvidersSettings> settings)
         {
             _repo = repo;
+            _providerFactory = providerFactory;
+            _normalizationService = normalizationService;
+            _logger = logger;
+            _settings = settings.Value;
         }
 
         // ================= GET ALL / BY MONTH =================
@@ -67,6 +82,132 @@ namespace Community_Event_Finder.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, "Error retrieving event.");
             }
+        }
+
+        // ================= SYNC EXTERNAL PROVIDERS =================
+        [HttpPost("sync")]
+        public async Task<IActionResult> SyncExternalEvents()
+        {
+            var summary = new EventSyncSummary();
+
+            try
+            {
+                _logger.LogInformation("Starting external event sync...");
+
+                var providers = _providerFactory.GetEnabledProviders().ToList();
+
+                if (!providers.Any())
+                {
+                    _logger.LogWarning("No external providers enabled");
+                    summary.Message = "No providers enabled";
+                    return Ok(summary);
+                }
+
+                var allNormalizedEvents = new List<EventItem>();
+
+                // Fetch and process events from all enabled providers
+                foreach (var provider in providers)
+                {
+                    try
+                    {
+                        _logger.LogInformation($"Fetching events from {provider.ProviderName}...");
+                        summary.ProvidersProcessed.Add(provider.ProviderName);
+
+                        var events = await provider.GetEventsAsync(
+                            latitude: _settings.SearchLatitude,
+                            longitude: _settings.SearchLongitude,
+                            radiusMiles: _settings.SearchRadiusMiles);
+
+                        _logger.LogInformation($"Retrieved {events.Count} events from {provider.ProviderName}");
+                        summary.EventsFetched += events.Count;
+
+                        if (!events.Any())
+                            continue;
+
+                        // Determine the event source type
+                        var sourceType = GetEventSourceType(provider.ProviderName);
+                        if (sourceType == null)
+                        {
+                            _logger.LogWarning($"Unknown provider name: {provider.ProviderName}, skipping");
+                            summary.ErrorsEncountered[$"{provider.ProviderName}_Unknown"] = "Unknown provider name";
+                            continue;
+                        }
+
+                        // Normalize and track valid/invalid counts
+                        _logger.LogInformation($"Normalizing {events.Count} events from {provider.ProviderName}...");
+                        var (normalizedEvents, validCount, invalidCount) =
+                            await _normalizationService.NormalizeEventsWithStatsAsync(events, sourceType.Value);
+
+                        _logger.LogInformation($"Normalization complete: {validCount} valid, {invalidCount} invalid");
+                        summary.EventsValid += validCount;
+                        summary.EventsInvalid += invalidCount;
+
+                        allNormalizedEvents.AddRange(normalizedEvents);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Error fetching/processing from {provider.ProviderName}: {ex.Message}");
+                        summary.ErrorsEncountered[provider.ProviderName] = ex.Message;
+                    }
+                }
+
+                if (!allNormalizedEvents.Any())
+                {
+                    _logger.LogWarning("No events to import after normalization");
+                    summary.Message = "No valid events to import";
+                    return Ok(summary);
+                }
+
+                // Upsert with duplicate tracking
+                _logger.LogInformation($"Upserting {allNormalizedEvents.Count} normalized events...");
+                var (importedEventIds, duplicateCount) =
+                    await _repo.UpsertManyWithStatsAsync(allNormalizedEvents);
+
+                summary.EventsUpserted = importedEventIds.Count;
+                summary.EventsDuplicate = duplicateCount;
+                _logger.LogInformation($"Upsert complete: {importedEventIds.Count} events upserted, {duplicateCount} duplicates detected");
+
+                // Mark old events from all providers as inactive
+                foreach (var providerName in summary.ProvidersProcessed)
+                {
+                    var sourceType = GetEventSourceType(providerName);
+                    if (sourceType.HasValue)
+                    {
+                        var inactiveCount = await _repo.MarkExternalEventsAsInactiveAsync(
+                            sourceType.Value,
+                            DateTime.UtcNow.AddDays(-1));
+
+                        summary.EventsMarkedInactive += inactiveCount;
+                        if (inactiveCount > 0)
+                            _logger.LogInformation($"Marked {inactiveCount} events as inactive from {providerName}");
+                    }
+                }
+
+                summary.Message = $"Sync completed: {summary.EventsUpserted} events processed from {summary.ProvidersProcessed.Count} providers";
+                _logger.LogInformation($"Event sync completed successfully");
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during external event sync: {ex.Message}");
+                summary.ErrorsEncountered["Unexpected"] = ex.Message;
+                summary.Message = "Sync failed with error";
+                return StatusCode(500, summary);
+            }
+        }
+
+        /// <summary>
+        /// Maps provider name to EventSourceType enum value.
+        /// </summary>
+        private EventSourceType? GetEventSourceType(string providerName)
+        {
+            return providerName.ToLowerInvariant() switch
+            {
+                "predicthq" => EventSourceType.PredictHQ,
+                "seatgeek" => EventSourceType.SeatGeek,
+                "ticketmaster" => EventSourceType.Ticketmaster,
+                _ => null
+            };
         }
 
         // ================= ADD EVENT =================

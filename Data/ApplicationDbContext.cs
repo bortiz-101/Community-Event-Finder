@@ -40,13 +40,15 @@ namespace Community_Event_Finder.Data
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure decimal properties for Location
+            // USA coordinates: Latitude -90 to 90, Longitude -180 to 180
+            // Using precision(13, 8) allows -9999.99999999 to 9999.99999999
             builder.Entity<Location>()
                 .Property(l => l.Latitude)
-                .HasPrecision(10, 8);
+                .HasPrecision(13, 8);
 
             builder.Entity<Location>()
                 .Property(l => l.Longitude)
-                .HasPrecision(10, 8);
+                .HasPrecision(13, 8);
 
             // Favorite -> Event relationship
             builder.Entity<Favorite>()

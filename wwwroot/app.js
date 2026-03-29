@@ -31,6 +31,7 @@ let favoritesOnly = false;
 let searchText = "";
 let radiusMiles = 0;
 let selectedMonth = null;  // Format: "2026-03"
+let selectedSource = null;  // Format: "User", "Ticketmaster", etc.
 
 let centerLat = 41.9975;
 let centerLon = -87.6586;
@@ -84,7 +85,48 @@ async function loadEvents(month = null) {
     
     const res = await fetch(url);
     allEvents = await res.json();
+    updateSourceDropdown();
     applyFilters();
+}
+
+
+// ================= SYNC EXTERNAL EVENTS =================
+
+async function syncExternalEvents() {
+    const btn = document.getElementById("syncBtn");
+    if (!btn) return;
+
+    const originalText = btn.textContent;
+    
+    try {
+        btn.textContent = "⟳ Syncing...";
+        btn.disabled = true;
+
+        const response = await fetch("/api/events/sync", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(`Sync failed: ${data.error || "Unknown error"}`);
+            return;
+        }
+
+        alert(`✓ Sync completed! ${data.imported} events imported/updated.`);
+        
+        // Reload events to show new data
+        await loadEvents();
+    } catch (error) {
+        alert(`Sync error: ${error.message}`);
+        console.error("Sync error:", error);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }
 
 
@@ -142,6 +184,11 @@ function applyFilters() {
         });
     }
 
+    // source
+    if (selectedSource) {
+        filtered = filtered.filter(e => (e.source || "") === selectedSource);
+    }
+
     renderList(filtered);
     renderMap(filtered);
 }
@@ -195,6 +242,37 @@ function clearMonth() {
     const monthInput = document.getElementById("monthInput");
     if (monthInput) monthInput.value = "";
     loadEvents();
+}
+
+
+// ================= SOURCE FILTER =================
+
+function setSource(val) {
+    selectedSource = val || null;
+    applyFilters();
+}
+
+function updateSourceDropdown() {
+    const sourceSelect = document.getElementById("sourceSelect");
+    if (!sourceSelect) return;
+
+    // Get unique sources from all events
+    const sources = [...new Set(allEvents.map(e => e.source || "").filter(s => s))].sort();
+
+    // Preserve current view, get current selection
+    const currentVal = sourceSelect.value;
+
+    // Clear and rebuild options
+    sourceSelect.innerHTML = '<option value="">All sources</option>';
+    sources.forEach(source => {
+        const option = document.createElement("option");
+        option.value = source;
+        option.textContent = source;
+        sourceSelect.appendChild(option);
+    });
+
+    // Restore selection
+    sourceSelect.value = currentVal;
 }
 
 
@@ -347,7 +425,7 @@ function renderList(events) {
           ${canDelete ? `<span class="trash" title="Delete">🗑</span>` : ``}
         </div>
       </div>
-      <div class="meta">${escapeHtml((ev.location?.city || "") + (ev.category?.name ? " • " + ev.category.name : ""))}</div>
+      <div class="meta">${escapeHtml((ev.location?.city || "") + (ev.category?.name ? " • " + ev.category.name : "") + (ev.source ? " • " + ev.source : ""))}</div>
     `;
 
         div.addEventListener("click", () => selectEvent(ev));
@@ -416,6 +494,9 @@ ${ev.location?.city || ""}, ${ev.location?.state || ""} ${ev.location?.zip || ""
 
 Category:
 ${ev.category?.name || ""}
+
+Source:
+${ev.source || ""}
 
 ${ev.description || ""}
 
@@ -521,6 +602,7 @@ function openCalendarWindow() {
             state: e.location?.state,
             zip: e.location?.zip,
             category: e.category?.name,
+            source: e.source,
             description: e.description
           }
         };
@@ -548,6 +630,8 @@ function openCalendarWindow() {
       ((p.city || "") + (p.state ? ", " + p.state : "") + (p.zip ? " " + p.zip : "")) +
       "<br><br>" +
       "<b>Category:</b> " + (p.category || "") +
+      "<br><br>" +
+      "<b>Source:</b> " + (p.source || "") +
       "<br><br>" +
       (p.description || "");
   }
