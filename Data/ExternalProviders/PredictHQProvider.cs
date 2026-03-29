@@ -12,6 +12,8 @@ namespace Community_Event_Finder.Data.ExternalProviders
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly PredictHQSettings _settings;
         private readonly ILogger<PredictHQProvider> _logger;
+        private const int PageSize = 100;
+        private const int MaxPages = 100;
 
         public string ProviderName => "PredictHQ";
 
@@ -44,31 +46,46 @@ namespace Community_Event_Finder.Data.ExternalProviders
                 }
 
                 var client = _httpClientFactory.CreateClient();
-                var url = _settings.EventsUrl;
-
-                // Build query parameters
-                var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
-                if (queryParams.Count > 0)
-                {
-                    url += "?" + string.Join("&", queryParams);
-                }
-
                 // Setup auth header
                 client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.ApiKey);
 
-                var response = await client.GetAsync(url, cancellationToken);
+                int offset = 0;
+                int pageCount = 0;
 
-                if (response.IsSuccessStatusCode)
+                while (pageCount < MaxPages)
                 {
-                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                    events = ParsePredictHQResponse(content);
-                    _logger.LogInformation($"Retrieved {events.Count} events from PredictHQ");
+                    var url = _settings.EventsUrl;
+                    var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
+                    queryParams.Add($"limit={PageSize}");
+                    queryParams.Add($"offset={offset}");
+
+                    url += "?" + string.Join("&", queryParams);
+
+                    var response = await client.GetAsync(url, cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                        var pageEvents = ParsePredictHQResponse(content);
+
+                        if (pageEvents.Count == 0)
+                        {
+                            break; // No more events on this page
+                        }
+
+                        events.AddRange(pageEvents);
+                        offset += PageSize;
+                        pageCount++;
+                    }
+                    else
+                    {
+                        _logger.LogError($"PredictHQ API error on page {pageCount}: {response.StatusCode} - {response.ReasonPhrase}");
+                        break; // Stop pagination on error
+                    }
                 }
-                else
-                {
-                    _logger.LogError($"PredictHQ API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+
+                _logger.LogInformation($"Retrieved {events.Count} events from PredictHQ ({pageCount} pages)");
             }
             catch (Exception ex)
             {
