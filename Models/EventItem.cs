@@ -35,6 +35,11 @@ namespace Community_Event_Finder.Models
 
         public string? CreatedByUserId { get; set; }
 
+        // External provider tracking for deduplication
+        public string? ExternalEventId { get; set; }
+
+        public EventSourceType? ExternalEventSourceType { get; set; }
+
         public bool IsFavorite { get; set; }
 
         // Navigation properties

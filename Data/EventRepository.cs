@@ -265,5 +265,121 @@ namespace Community_Event_Finder.Data
                 return (null, null);
             }
         }
+
+        // ============= EXTERNAL EVENT DEDUPLICATION =============
+
+        /// <summary>
+        /// Retrieves an event by its external provider ID.
+        /// Primary deduplication key: (ExternalEventId, ExternalEventSourceType)
+        /// </summary>
+        public async Task<EventItem?> GetEventByExternalIdAsync(string externalEventId, EventSourceType sourceType)
+        {
+            if (string.IsNullOrWhiteSpace(externalEventId))
+                return null;
+
+            var eventItem = await _context.Events
+                .FirstOrDefaultAsync(e =>
+                    e.ExternalEventId == externalEventId &&
+                    e.ExternalEventSourceType == sourceType);
+
+            return eventItem;
+        }
+
+        /// <summary>
+        /// Retrieves an event by secondary deduplication key.
+        /// Secondary key: (Title, StartTime, VenueName)
+        /// Used when no ExternalEventId is available.
+        /// </summary>
+        public async Task<EventItem?> GetEventBySecondaryKeyAsync(string title, DateTime startTime, string? venueName)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+                return null;
+
+            var query = _context.Events
+                .Where(e =>
+                    e.Title == title &&
+                    e.StartTime == startTime);
+
+            // If venue name is provided, check against location
+            if (!string.IsNullOrWhiteSpace(venueName))
+            {
+                query = query.Where(e =>
+                    e.Location != null &&
+                    e.Location.VenueName == venueName);
+            }
+
+            var eventItem = await query.FirstOrDefaultAsync();
+            return eventItem;
+        }
+
+        /// <summary>
+        /// Batch upsert (insert or update) multiple external events.
+        /// Deduplication strategy:
+        /// 1. Primary: Check by (ExternalEventId, SourceType)
+        /// 2. Secondary fallback: Check by (Title, StartTime, VenueName)
+        /// 3. If found: Update existing record
+        /// 4. If not found: Insert new record
+        /// Returns list of EventIds (both new and updated)
+        /// </summary>
+        public async Task<List<string>> UpsertManyAsync(List<EventItem> events)
+        {
+            var result = new List<string>();
+
+            if (events == null || events.Count == 0)
+                return result;
+
+            foreach (var incomingEvent in events)
+            {
+                EventItem? existing = null;
+
+                // Try primary deduplication key: (ExternalEventId, SourceType)
+                if (!string.IsNullOrWhiteSpace(incomingEvent.ExternalEventId) &&
+                    incomingEvent.ExternalEventSourceType.HasValue)
+                {
+                    existing = await GetEventByExternalIdAsync(
+                        incomingEvent.ExternalEventId,
+                        incomingEvent.ExternalEventSourceType.Value);
+                }
+
+                // Try secondary deduplication key if primary didn't match
+                if (existing == null && !string.IsNullOrWhiteSpace(incomingEvent.Title))
+                {
+                    var venueName = incomingEvent.Location?.VenueName;
+                    existing = await GetEventBySecondaryKeyAsync(
+                        incomingEvent.Title,
+                        incomingEvent.StartTime,
+                        venueName);
+                }
+
+                if (existing != null)
+                {
+                    // Update existing event
+                    existing.Title = incomingEvent.Title;
+                    existing.Description = incomingEvent.Description;
+                    existing.StartTime = incomingEvent.StartTime;
+                    existing.EndTime = incomingEvent.EndTime;
+                    existing.Url = incomingEvent.Url;
+                    existing.LocationId = incomingEvent.LocationId;
+                    existing.CategoryId = incomingEvent.CategoryId;
+                    existing.ExternalEventId = incomingEvent.ExternalEventId;
+                    existing.ExternalEventSourceType = incomingEvent.ExternalEventSourceType;
+
+                    _context.Events.Update(existing);
+                    result.Add(existing.EventId);
+                }
+                else
+                {
+                    // Insert new event
+                    if (string.IsNullOrWhiteSpace(incomingEvent.EventId))
+                        incomingEvent.EventId = Guid.NewGuid().ToString();
+
+                    _context.Events.Add(incomingEvent);
+                    result.Add(incomingEvent.EventId);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return result;
+        }
     }
 }
