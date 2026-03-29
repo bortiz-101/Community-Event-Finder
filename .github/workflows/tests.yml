@@ -19,16 +19,13 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-    
     - name: Run tests
-      run: dotnet test Tests/Community-Event-Finder.Tests.csproj --no-build --configuration Release --verbosity normal --logger "trx" --results-directory "./test-results"
+      run: dotnet test Tests/Community-Event-Finder.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFilePrefix=testresults"
     
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: ./test-results/
+        path: ${{ github.workspace }}/TestResults/
         retention-days: 30
