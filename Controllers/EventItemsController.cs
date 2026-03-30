@@ -4,6 +4,7 @@ using System.Text;
 using Community_Event_Finder.Data;
 using Community_Event_Finder.Data.ExternalProviders;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Community_Event_Finder.Controllers
 {
@@ -37,6 +38,7 @@ namespace Community_Event_Finder.Controllers
         {
             try
             {
+                _logger.LogInformation("Fetching all events for the current month.");
                 // If month parameter is provided, parse it and get events for that month
                 if (!string.IsNullOrWhiteSpace(month))
                 {
@@ -49,6 +51,9 @@ namespace Community_Event_Finder.Controllers
                         return BadRequest("Invalid year or month value.");
 
                     var events = await _repo.GetEventsByMonthAsync(year, monthNum);
+
+                    _logger.LogInformation("Fetched {EventCount} events for the current month.", events.Count);
+
                     return Ok(events);
                 }
 
@@ -215,10 +220,15 @@ namespace Community_Event_Finder.Controllers
         public async Task<IActionResult> Add([FromBody] AddEventDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                _logger.LogWarning("Add event request failed model validation.");
 
+                return BadRequest(ModelState);
+            }
             var start = dto.StartTime ?? DateTime.Now;
             var end = dto.EndTime ?? start.AddHours(1);
+
+            _logger.LogInformation("Attempting to add event with title: {Title}", dto.Title);
 
             try
             {
@@ -235,15 +245,20 @@ namespace Community_Event_Finder.Controllers
                     dto.Description,
                     dto.Url);
 
+                _logger.LogInformation("Event added successfully with ID: {Id}", id);
+
                 return Ok(new { id });
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex, "Duplicate or invalid event add attempt for title: {Title}", dto.Title);
+
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Unexpected error while adding event with title: {Title}", dto.Title);
+
                 return StatusCode(500, "Error: Duplicated event with same name, time and added by same user.");
             }
         }
