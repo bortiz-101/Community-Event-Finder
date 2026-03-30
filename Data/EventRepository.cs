@@ -9,20 +9,25 @@ namespace Community_Event_Finder.Data
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpFactory;
+        private readonly ILogger<EventRepository> _logger;
+
 
         // TODO: Replace with actual logged-in user ID from User.FindFirst(ClaimTypes.NameIdentifier)
         private readonly string _userId = "test-user";
 
-        public EventRepository(ApplicationDbContext context, IHttpClientFactory httpFactory)
+        public EventRepository(ApplicationDbContext context, IHttpClientFactory httpFactory, ILogger<EventRepository> logger)
         {
             _context = context;
             _httpFactory = httpFactory;
+            _logger = logger;
         }
 
         // ================= GET EVENTS =================
 
         public async Task<List<EventDto>> GetEventsForCurrentMonthAsync()
         {
+            _logger.LogInformation("Getting events for current month for user {UserId}", _userId);
+
             // Events in 1 month starting from today
             var start = DateTime.Today;
             var end = start.AddMonths(12);
@@ -47,12 +52,15 @@ namespace Community_Event_Finder.Data
                 dtos.Add(EventDto.FromEventItem(evt));
             }
 
+            _logger.LogInformation("Retrieved {EventCount} events for user {UserId}", dtos.Count, _userId);
+
             return dtos;
         }
 
         public async Task<List<EventDto>> GetFavoriteEventsForCurrentMonthAsync()
         {
             var all = await GetEventsForCurrentMonthAsync();
+            _logger.LogInformation("Retrieved {EventCount} favorite events for user {UserId}", all.Count(e => e.IsFavorite), _userId);
             return all.Where(e => e.IsFavorite).ToList();
         }
 
@@ -117,13 +125,17 @@ namespace Community_Event_Finder.Data
             string? venue, string? address, string? city, string? state, string? zip,
             string? desc, string? url)
         {
+            _logger.LogInformation("Attempting to insert event with title {Title} for user {UserId}", title, _userId);
+
             // Check for duplicates
             var exists = await _context.Events
                 .AnyAsync(e => e.Title == title && e.StartTime == start);
 
             if (exists)
+            {
+                _logger.LogWarning("Duplicate event detected for title {Title} and start time {StartTime}", title, start);
                 throw new Exception("An event with same title and time already exists.");
-
+            }
             var newId = Guid.NewGuid().ToString();
 
             // Create or get Location
@@ -145,6 +157,8 @@ namespace Community_Event_Finder.Data
 
                 _context.Locations.Add(location);
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Location created for event {Title}", title);
             }
 
             // Get or create Category
@@ -186,6 +200,8 @@ namespace Community_Event_Finder.Data
 
         public async Task DeleteEventAsync(string id)
         {
+            _logger.LogInformation("Attempting to delete event {EventId} for user {UserId}", id, _userId);
+
             var eventItem = await _context.Events
                 .FirstOrDefaultAsync(e => e.EventId == id && e.CreatedByUserId == _userId);
 
@@ -193,6 +209,7 @@ namespace Community_Event_Finder.Data
             {
                 _context.Events.Remove(eventItem);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Deleted event {EventId} for user {UserId}", id, _userId);
             }
         }
 
