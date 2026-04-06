@@ -53,12 +53,12 @@ namespace Community_Event_Finder.Data.ExternalProviders
                     var url = _settings.EventsUrl;
                     var queryParams = BuildQueryParameters(latitude, longitude, radiusMiles, fromDate, toDate);
                     queryParams.Add($"client_id={Uri.EscapeDataString(_settings.ClientId ?? "")}");
-                    
+
                     if (!string.IsNullOrWhiteSpace(_settings.ClientSecret))
                     {
                         queryParams.Add($"client_secret={Uri.EscapeDataString(_settings.ClientSecret)}");
                     }
-                    
+
                     queryParams.Add($"page={page}");
                     queryParams.Add($"per_page={PageSize}");
 
@@ -135,10 +135,10 @@ namespace Community_Event_Finder.Data.ExternalProviders
             try
             {
                 using var doc = JsonDocument.Parse(json);
-                
+
                 // SeatGeek API returns an object with "events" property and "meta" property
                 var root = doc.RootElement;
-                
+
                 if (root.ValueKind != JsonValueKind.Object)
                 {
                     _logger.LogWarning("SeatGeek response is not an object");
@@ -214,15 +214,15 @@ namespace Community_Event_Finder.Data.ExternalProviders
                         {
                             if (location.TryGetProperty("lat", out var lat))
                             {
-                                evt.Latitude = lat.ValueKind == JsonValueKind.Number 
-                                    ? (decimal)lat.GetDouble() 
+                                evt.Latitude = lat.ValueKind == JsonValueKind.Number
+                                    ? (decimal)lat.GetDouble()
                                     : null;
                             }
-                            
+
                             if (location.TryGetProperty("lon", out var lon))
                             {
-                                evt.Longitude = lon.ValueKind == JsonValueKind.Number 
-                                    ? (decimal)lon.GetDouble() 
+                                evt.Longitude = lon.ValueKind == JsonValueKind.Number
+                                    ? (decimal)lon.GetDouble()
                                     : null;
                             }
                         }

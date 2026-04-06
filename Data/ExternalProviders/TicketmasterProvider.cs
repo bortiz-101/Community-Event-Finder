@@ -191,7 +191,7 @@ namespace Community_Event_Finder.Data.ExternalProviders
                         classifications.GetArrayLength() > 0)
                     {
                         var classification = classifications[0];
-                        
+
                         // Try to get the most specific category: segment > genre > subGenre
                         if (classification.TryGetProperty("segment", out var segment) &&
                             segment.TryGetProperty("name", out var segmentName))
