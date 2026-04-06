@@ -27,7 +27,6 @@ The script will:
 1. **Remove .git directory** - Prevents accidental API key commits to version control
 2. **Configure database connection** - Prompts for SQL Server details
 3. **Configure external providers** - Lets you enable/disable event providers and enter API keys:
-   - PredictHQ (https://docs.predicthq.com/)
    - Ticketmaster (https://developer.ticketmaster.com/)
    - SeatGeek (https://platform.seatgeek.com/)
 4. **Save configuration** - Writes everything to `appsettings.Development.json`

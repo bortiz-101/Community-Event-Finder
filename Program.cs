@@ -44,9 +44,9 @@ namespace Community_Event_Finder
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<INormalizationService, NormalizationService>();
+            builder.Services.AddScoped<IEventValidator, EventValidator>();
 
             // Register external event providers
-            builder.Services.AddScoped<PredictHQProvider>();
             builder.Services.AddScoped<TicketmasterProvider>();
             builder.Services.AddScoped<SeatGeekProvider>();
             builder.Services.AddScoped<IExternalEventProviderFactory, ExternalEventProviderFactory>();
@@ -97,7 +97,6 @@ namespace Community_Event_Finder
             var allErrors = new List<string>();
 
             // Validate each provider
-            allErrors.AddRange(settings.PredictHQ.Validate());
             allErrors.AddRange(settings.Ticketmaster.Validate());
             allErrors.AddRange(settings.SeatGeek.Validate());
 

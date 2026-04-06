@@ -15,6 +15,7 @@ namespace Community_Event_Finder.Controllers
         private readonly IEventRepository _repo;
         private readonly IExternalEventProviderFactory _providerFactory;
         private readonly INormalizationService _normalizationService;
+        private readonly IEventValidator _validator;
         private readonly ILogger<EventItemsController> _logger;
         private readonly ExternalProvidersSettings _settings;
 
@@ -22,12 +23,14 @@ namespace Community_Event_Finder.Controllers
             IEventRepository repo,
             IExternalEventProviderFactory providerFactory,
             INormalizationService normalizationService,
+            IEventValidator validator,
             ILogger<EventItemsController> logger,
             IOptions<ExternalProvidersSettings> settings)
         {
             _repo = repo;
             _providerFactory = providerFactory;
             _normalizationService = normalizationService;
+            _validator = validator;
             _logger = logger;
             _settings = settings.Value;
         }
@@ -109,6 +112,7 @@ namespace Community_Event_Finder.Controllers
                 }
 
                 var allNormalizedEvents = new List<EventItem>();
+                var successfulProviders = new List<string>(); // Track only providers that successfully fetched events
 
                 // Fetch and process events from all enabled providers
                 foreach (var provider in providers)
@@ -116,7 +120,6 @@ namespace Community_Event_Finder.Controllers
                     try
                     {
                         _logger.LogInformation($"Fetching events from {provider.ProviderName}...");
-                        summary.ProvidersProcessed.Add(provider.ProviderName);
 
                         var events = await provider.GetEventsAsync(
                             latitude: _settings.SearchLatitude,
@@ -125,9 +128,15 @@ namespace Community_Event_Finder.Controllers
 
                         _logger.LogInformation($"Retrieved {events.Count} events from {provider.ProviderName}");
                         summary.EventsFetched += events.Count;
+                        summary.ProvidersProcessed.Add(provider.ProviderName);
 
                         if (!events.Any())
+                        {
+                            _logger.LogWarning($"No events returned from {provider.ProviderName}");
                             continue;
+                        }
+
+                        successfulProviders.Add(provider.ProviderName);
 
                         // Determine the event source type
                         var sourceType = GetEventSourceType(provider.ProviderName);
@@ -172,8 +181,9 @@ namespace Community_Event_Finder.Controllers
                 summary.EventsDuplicate = duplicateCount;
                 _logger.LogInformation($"Upsert complete: {importedEventIds.Count} events upserted, {duplicateCount} duplicates detected");
 
-                // Mark old events from all providers as inactive
-                foreach (var providerName in summary.ProvidersProcessed)
+                // Mark old events from providers that were successfully synced as inactive
+                // Only mark as inactive if the provider actually returned data in this sync
+                foreach (var providerName in successfulProviders)
                 {
                     var sourceType = GetEventSourceType(providerName);
                     if (sourceType.HasValue)
@@ -208,7 +218,6 @@ namespace Community_Event_Finder.Controllers
         {
             return providerName.ToLowerInvariant() switch
             {
-                "predicthq" => EventSourceType.PredictHQ,
                 "seatgeek" => EventSourceType.SeatGeek,
                 "ticketmaster" => EventSourceType.Ticketmaster,
                 _ => null
@@ -222,9 +231,17 @@ namespace Community_Event_Finder.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Add event request failed model validation.");
-
                 return BadRequest(ModelState);
             }
+
+            // Use centralized validator for business logic validation
+            var validationResult = _validator.ValidateAddEventDto(dto);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Add event business validation failed. Errors: {Errors}", validationResult.GetErrorsAsString());
+                return BadRequest(new { errors = validationResult.Errors });
+            }
+
             var start = dto.StartTime ?? DateTime.Now;
             var end = dto.EndTime ?? start.AddHours(1);
 

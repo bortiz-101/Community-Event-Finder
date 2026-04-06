@@ -12,32 +12,6 @@ namespace Community_Event_Finder.Tests
     public class NormalizationTests
     {
         [Fact]
-        public void PredictHQEventNormalization_ShouldPopulateRequiredFields()
-        {
-            // Arrange
-            var externalEvent = TestDataFactory.CreatePredictHQTestEvent();
-
-            // Act
-            var normalized = new EventItem
-            {
-                Title = externalEvent.Title ?? "",
-                StartTime = externalEvent.StartTime,
-                EndTime = externalEvent.EndTime ?? externalEvent.StartTime.AddHours(1),
-                ExternalEventId = externalEvent.ExternalId ?? "",
-                ExternalEventSourceType = EventSourceType.PredictHQ,
-                Source = externalEvent.Source ?? ""
-            };
-
-            // Assert
-            Assert.NotNull(normalized);
-            Assert.Equal("Live Concert - PredictHQ", normalized.Title);
-            Assert.Equal(new System.DateTime(2026, 5, 15, 19, 0, 0), normalized.StartTime);
-            Assert.Equal(new System.DateTime(2026, 5, 15, 22, 0, 0), normalized.EndTime);
-            Assert.Equal("predictq-demo-123", normalized.ExternalEventId);
-            Assert.Equal(EventSourceType.PredictHQ, normalized.ExternalEventSourceType);
-        }
-
-        [Fact]
         public void SeatGeekEventNormalization_ShouldPopulateRequiredFields()
         {
             // Arrange
@@ -65,14 +39,14 @@ namespace Community_Event_Finder.Tests
         public void NormalizedEvent_ShouldPassValidation()
         {
             // Arrange
-            var externalEvent = TestDataFactory.CreatePredictHQTestEvent();
+            var externalEvent = TestDataFactory.CreateSeatGeekTestEvent();
             var normalized = new EventItem
             {
                 Title = externalEvent.Title ?? "",
                 StartTime = externalEvent.StartTime,
                 EndTime = externalEvent.EndTime ?? externalEvent.StartTime.AddHours(1),
                 ExternalEventId = externalEvent.ExternalId ?? "",
-                ExternalEventSourceType = EventSourceType.PredictHQ
+                ExternalEventSourceType = EventSourceType.SeatGeek
             };
 
             // Act
@@ -92,7 +66,7 @@ namespace Community_Event_Finder.Tests
                 StartTime = new System.DateTime(2026, 11, 1, 10, 0, 0),
                 EndTime = new System.DateTime(2026, 11, 1, 12, 0, 0),
                 ExternalEventId = "test-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ
+                ExternalEventSourceType = EventSourceType.SeatGeek
             };
 
             // Act
@@ -112,7 +86,7 @@ namespace Community_Event_Finder.Tests
                 StartTime = default(System.DateTime),
                 EndTime = new System.DateTime(2026, 11, 1, 12, 0, 0),
                 ExternalEventId = "test-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ
+                ExternalEventSourceType = EventSourceType.SeatGeek
             };
 
             // Act
@@ -132,7 +106,7 @@ namespace Community_Event_Finder.Tests
                 StartTime = new System.DateTime(2026, 11, 1, 12, 0, 0),
                 EndTime = new System.DateTime(2026, 11, 1, 10, 0, 0),
                 ExternalEventId = "test-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ
+                ExternalEventSourceType = EventSourceType.SeatGeek
             };
 
             // Act

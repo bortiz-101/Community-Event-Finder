@@ -182,7 +182,7 @@
         <mxCell id="be_refresh" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Refresh Requested&#xa;(EventService.RefreshFromSources)" vertex="1">
           <mxGeometry height="60" width="280" x="332.30930909207814" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="be_fetch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Fetching From Providers&#xa;(ApiClient.FetchEvents via Eventbrite / Ticketmaster / PredictHQ / SeatGeek)" vertex="1">
+        <mxCell id="be_fetch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Fetching From Providers&#xa;(ApiClient.FetchEvents via Ticketmaster / SeatGeek)" vertex="1">
           <mxGeometry height="70" width="540" x="160" y="440" as="geometry" />
         </mxCell>
         <mxCell id="be_normalize" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;" value="Normalize + Validate&#xa;(map to Event, enrich Location/Category, de-dupe)" vertex="1">

@@ -185,6 +185,31 @@ namespace Community_Event_Finder.Data.ExternalProviders
                         }
                     }
 
+                    // Parse category from classifications
+                    if (eventElement.TryGetProperty("classifications", out var classifications) &&
+                        classifications.ValueKind == JsonValueKind.Array &&
+                        classifications.GetArrayLength() > 0)
+                    {
+                        var classification = classifications[0];
+
+                        // Try to get the most specific category: segment > genre > subGenre
+                        if (classification.TryGetProperty("segment", out var segment) &&
+                            segment.TryGetProperty("name", out var segmentName))
+                        {
+                            evt.Category = segmentName.GetString();
+                        }
+                        else if (classification.TryGetProperty("genre", out var genre) &&
+                                 genre.TryGetProperty("name", out var genreName))
+                        {
+                            evt.Category = genreName.GetString();
+                        }
+                        else if (classification.TryGetProperty("subGenre", out var subGenre) &&
+                                 subGenre.TryGetProperty("name", out var subGenreName))
+                        {
+                            evt.Category = subGenreName.GetString();
+                        }
+                    }
+
                     events.Add(evt);
                 }
             }

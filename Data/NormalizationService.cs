@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Community_Event_Finder.Models;
 using Community_Event_Finder.Data.ExternalProviders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Community_Event_Finder.Data
 {
@@ -37,33 +38,52 @@ namespace Community_Event_Finder.Data
     public class NormalizationService : INormalizationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEventValidator _validator;
+        private readonly ILogger<NormalizationService> _logger;
 
-        public NormalizationService(ApplicationDbContext context)
+        public NormalizationService(ApplicationDbContext context, IEventValidator validator, ILogger<NormalizationService> logger)
         {
             _context = context;
+            _validator = validator;
+            _logger = logger;
         }
 
         /// <summary>
         /// Maps and normalizes an external event DTO to a domain EventItem.
+        /// Logs validation errors and returns null for invalid events.
         /// </summary>
         public async Task<EventItem?> NormalizeEventAsync(ExternalEventDto externalEvent, EventSourceType sourceType)
         {
             if (externalEvent == null)
+            {
+                _logger.LogWarning("Cannot normalize null external event");
                 return null;
+            }
 
-            // Validate required fields
-            if (string.IsNullOrWhiteSpace(externalEvent.Title))
-                return null; // Title is required
-
-            if (externalEvent.StartTime == default(DateTime))
-                return null; // StartTime is required
+            // Validate using centralized validator
+            var validationResult = _validator.ValidateExternalEventDto(externalEvent);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning(
+                    "External event validation failed for event from {SourceType}. " +
+                    "Title: {Title}. Errors: {Errors}",
+                    sourceType,
+                    externalEvent.Title ?? "[null]",
+                    validationResult.GetErrorsAsString());
+                return null;
+            }
 
             // Set default end time if not provided (e.g., 2 hours after start)
             var endTime = externalEvent.EndTime ?? externalEvent.StartTime.AddHours(2);
 
-            // Validate EndTime is after StartTime
+            // Double-check EndTime is after StartTime (defensive programming)
             if (endTime <= externalEvent.StartTime)
+            {
+                _logger.LogWarning(
+                    "EndTime was before or equal to StartTime for event {Title}. Setting to default 2-hour duration.",
+                    externalEvent.Title);
                 endTime = externalEvent.StartTime.AddHours(2);
+            }
 
             // Get or create Location
             int? locationId = null;
@@ -88,7 +108,7 @@ namespace Community_Event_Finder.Data
             {
                 EventId = Guid.NewGuid().ToString(),
                 Source = sourceType.ToString(),
-                Title = externalEvent.Title.Trim(),
+                Title = externalEvent.Title?.Trim() ?? "",
                 Description = externalEvent.Description,
                 StartTime = externalEvent.StartTime,
                 EndTime = endTime,
@@ -99,6 +119,17 @@ namespace Community_Event_Finder.Data
                 ExternalEventSourceType = sourceType,
                 CreatedAt = DateTime.UtcNow
             };
+
+            // Validate the final EventItem (defensive check)
+            var itemValidation = _validator.ValidateEventItem(eventItem);
+            if (!itemValidation.IsValid)
+            {
+                _logger.LogError(
+                    "Normalized event item failed validation for {Title}. Errors: {Errors}",
+                    eventItem.Title,
+                    itemValidation.GetErrorsAsString());
+                return null;
+            }
 
             return eventItem;
         }

@@ -2,11 +2,10 @@
 
 ## Overview
 
-This guide explains how to configure external event providers for the Community Event Finder application. The application supports three major event provider APIs:
+This guide explains how to configure external event providers for the Community Event Finder application. The application supports two major event provider APIs:
 
-1. **PredictHQ** - Event intelligence platform
-2. **Ticketmaster** - Ticket sales and events
-3. **SeatGeek** - Ticketing and event discovery platform
+1. **Ticketmaster** - Ticket sales and events
+2. **SeatGeek** - Ticketing and event discovery platform
 
 ## Configuration Requirements
 
@@ -25,11 +24,6 @@ All external provider configuration is stored in `appsettings.json` and organize
 {
   "ExternalProviders": {
     "RefreshIntervalMinutes": 60,
-    "PredictHQ": {
-      "Enabled": false,
-      "EventsUrl": "https://api.predicthq.com/v1/events",
-      "ApiKey": ""
-    },
     "Ticketmaster": {
       "Enabled": false,
       "EventsUrl": "https://app.ticketmaster.com/discovery/v2/events.json",
@@ -54,9 +48,9 @@ For local development, you can add your API keys to `appsettings.Development.jso
 {
   "ExternalProviders": {
     "RefreshIntervalMinutes": 30,
-    "PredictHQ": {
+    "Ticketmaster": {
       "Enabled": true,
-      "EventsUrl": "https://api.predicthq.com/v1/events",
+      "EventsUrl": "https://app.ticketmaster.com/discovery/v2/events.json",
       "ApiKey": "your-development-api-key-here"
     }
   }
@@ -77,39 +71,14 @@ Example using environment variables in `appsettings.json`:
 ```json
 {
   "ExternalProviders": {
-    "PredictHQ": {
-      "ApiKey": "${PREDICTHQ_API_KEY}"
+    "Ticketmaster": {
+      "ApiKey": "${TICKETMASTER_API_KEY}"
     }
   }
 }
 ```
 
 ## Provider-Specific Configuration
-
-### PredictHQ
-
-**Documentation**: https://docs.predicthq.com/
-
-**Configuration Parameters**:
-- `Enabled`: Set to `true` to enable this provider
-- `EventsUrl`: Complete events endpoint URL (e.g., `https://api.predicthq.com/v1/events`)
-- `ApiKey`: Bearer token for authentication
-
-**Getting Started**:
-1. Sign up at https://www.predicthq.com/
-2. Create an API token in the PredictHQ dashboard
-3. Add the token to your configuration
-
-**Example**:
-```json
-{
-  "PredictHQ": {
-    "Enabled": true,
-    "EventsUrl": "https://api.predicthq.com/v1/events",
-    "ApiKey": "your-predicthq-bearer-token"
-  }
-}
-```
 
 ### Ticketmaster
 
@@ -192,12 +161,12 @@ The application validates all enabled provider configurations during startup:
 
 ### Validation Error Example
 
-If you enable PredictHQ but forget to set the API key:
+If you enable Ticketmaster but forget to set the API key:
 
 ```
 Unhandled exception. System.InvalidOperationException: 
 External Providers Configuration Errors:
-PredictHQ ApiKey is required when enabled
+Ticketmaster ApiKey is required when enabled
 ```
 
 ### Clear Error Messages

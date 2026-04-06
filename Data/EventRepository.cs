@@ -38,7 +38,7 @@ namespace Community_Event_Finder.Data
                 .ToListAsync();
 
             var results = await _context.Events
-                .Where(e => e.StartTime >= start && e.StartTime < end)
+                .Where(e => e.StartTime >= start && e.StartTime < end && e.IsActive)
                 .OrderBy(e => e.StartTime)
                 .Include(e => e.Location)
                 .Include(e => e.Category)
@@ -80,7 +80,7 @@ namespace Community_Event_Finder.Data
                 .ToListAsync();
 
             var results = await _context.Events
-                .Where(e => e.StartTime >= start && e.StartTime < end)
+                .Where(e => e.StartTime >= start && e.StartTime < end && e.IsActive)
                 .OrderBy(e => e.StartTime)
                 .Include(e => e.Location)
                 .Include(e => e.Category)
@@ -448,6 +448,7 @@ namespace Community_Event_Finder.Data
                     existing.CategoryId = incomingEvent.CategoryId;
                     existing.ExternalEventId = incomingEvent.ExternalEventId;
                     existing.ExternalEventSourceType = incomingEvent.ExternalEventSourceType;
+                    existing.Source = incomingEvent.Source; // Keep source in sync with external source type
                     existing.IsActive = true; // Mark as active since we're seeing it again
 
                     _context.Events.Update(existing);

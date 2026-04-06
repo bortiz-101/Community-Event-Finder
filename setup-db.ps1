@@ -16,14 +16,12 @@ $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Ru
 $connectionString = "Server=$Server;Database=Community_Event_Finder;User Id=$Username;Password=$Password;TrustServerCertificate=true;"
 
 # Provider configuration
-$predictHQEnabled = (Read-Host "Enable PredictHQ? (y/n)") -eq "y"
-$predictHQKey = if ($predictHQEnabled) { Read-Host "PredictHQ API key" } else { "" }
-
 $ticketmasterEnabled = (Read-Host "Enable Ticketmaster? (y/n)") -eq "y"
 $ticketmasterKey = if ($ticketmasterEnabled) { Read-Host "Ticketmaster API key" } else { "" }
 
 $seatGeekEnabled = (Read-Host "Enable SeatGeek? (y/n)") -eq "y"
 $seatGeekId = if ($seatGeekEnabled) { Read-Host "SeatGeek Client ID" } else { "" }
+$seatGeekSecret = if ($seatGeekEnabled) { Read-Host "SeatGeek Client Secret" } else { "" }
 
 # Build settings and write as clean JSON
 $jsonTemplate = @"
@@ -33,11 +31,6 @@ $jsonTemplate = @"
   },
   "ExternalProviders": {
     "RefreshIntervalMinutes": 60,
-    "PredictHQ": {
-      "Enabled": $(if ($predictHQEnabled) { 'true' } else { 'false' }),
-      "EventsUrl": "https://api.predicthq.com/v1/events",
-      "ApiKey": "$predictHQKey"
-    },
     "Ticketmaster": {
       "Enabled": $(if ($ticketmasterEnabled) { 'true' } else { 'false' }),
       "EventsUrl": "https://app.ticketmaster.com/discovery/v2/events.json",
@@ -46,7 +39,8 @@ $jsonTemplate = @"
     "SeatGeek": {
       "Enabled": $(if ($seatGeekEnabled) { 'true' } else { 'false' }),
       "EventsUrl": "https://api.seatgeek.com/2/events",
-      "ClientId": "$seatGeekId"
+      "ClientId": "$seatGeekId",
+      "ClientSecret": "$seatGeekSecret"
     }
   },
   "Logging": {

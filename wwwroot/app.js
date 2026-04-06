@@ -83,10 +83,19 @@ async function loadEvents(month = null) {
         url += "?month=" + encodeURIComponent(month);
     }
     
-    const res = await fetch(url);
-    allEvents = await res.json();
-    updateSourceDropdown();
-    applyFilters();
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        allEvents = Array.isArray(data) ? data : [];
+        updateSourceDropdown();
+        applyFilters();
+    } catch (error) {
+        console.error("Error loading events:", error);
+        allEvents = [];
+        throw error; // Re-throw so caller can handle it
+    }
 }
 
 
@@ -119,10 +128,15 @@ async function syncExternalEvents() {
         alert(`✓ Sync completed! ${data.imported} events imported/updated.`);
         
         // Reload events to show new data
-        await loadEvents();
+        try {
+            await loadEvents();
+        } catch (loadError) {
+            console.error("Error loading events after sync:", loadError);
+            alert(`Sync completed, but error loading updated events. Please refresh the page.`);
+        }
     } catch (error) {
-        alert(`Sync error: ${error.message}`);
         console.error("Sync error:", error);
+        alert(`Sync error: ${error?.message || "Unknown error occurred"}`);
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;
@@ -254,10 +268,10 @@ function setSource(val) {
 
 function updateSourceDropdown() {
     const sourceSelect = document.getElementById("sourceSelect");
-    if (!sourceSelect) return;
+    if (!sourceSelect || !allEvents) return;
 
     // Get unique sources from all events
-    const sources = [...new Set(allEvents.map(e => e.source || "").filter(s => s))].sort();
+    const sources = [...new Set((allEvents || []).map(e => e.source || "").filter(s => s))].sort();
 
     // Preserve current view, get current selection
     const currentVal = sourceSelect.value;
@@ -506,10 +520,18 @@ ${ev.url ? "Link: " + ev.url : ""}`;
 // ================= CALENDAR WINDOW =================
 
 function openCalendarWindow() {
-    const win = window.open("", "calendar", "width=1100,height=750");
+    try {
+        const win = window.open("", "calendar", "width=1100,height=750");
+        if (!win) {
+            alert("Could not open calendar window.  Please check popup blockers.");
+            return;
+        }
 
-    win.document.write(`
-<html>
+        // Safely serialize allEvents with defensive defaults
+        const eventsData = allEvents && Array.isArray(allEvents) ? allEvents : [];
+        const eventsJson = JSON.stringify(eventsData);
+
+        win.document.write(`
 <head>
 <meta charset="utf-8"/>
 
@@ -553,7 +575,7 @@ function openCalendarWindow() {
 
 <script>
   // ===== data from parent window =====
-  const allEvents = ${JSON.stringify(allEvents)};
+  const allEvents = ${eventsJson};
 
   // ===== category colors =====
     const COLORS = {
@@ -695,6 +717,10 @@ function openCalendarWindow() {
 </body>
 </html>
 `);
+    } catch (error) {
+        console.error("Error opening calendar window:", error);
+        alert("Error opening calendar: " + error.message);
+    }
 }
 
 // ================= UI HELPERS =================

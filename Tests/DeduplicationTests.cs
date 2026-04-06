@@ -35,7 +35,7 @@ namespace Community_Event_Finder.Tests
             {
                 ExternalId = "event-123",
                 Title = "Event 1",
-                Source = "PredictHQ",
+                Source = "Ticketmaster",
                 StartTime = new System.DateTime(2026, 5, 15, 19, 0, 0),
                 EndTime = new System.DateTime(2026, 5, 15, 22, 0, 0)
             };
@@ -84,7 +84,7 @@ namespace Community_Event_Finder.Tests
             var (first, second) = TestDataFactory.CreateSecondaryDeduplicationScenario();
 
             // Act
-            var isSameEvent = 
+            var isSameEvent =
                 first.Title == second.Title &&
                 first.StartTime == second.StartTime &&
                 first.VenueName == second.VenueName;
@@ -153,8 +153,8 @@ namespace Community_Event_Finder.Tests
                 EventId = Guid.NewGuid().ToString(),
                 Title = "Concert",
                 ExternalEventId = "ext-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ,
-                Source = "PredictHQ",
+                ExternalEventSourceType = EventSourceType.Ticketmaster,
+                Source = "Ticketmaster",
                 StartTime = new System.DateTime(2026, 5, 15, 19, 0, 0),
                 EndTime = new System.DateTime(2026, 5, 15, 22, 0, 0)
             };
@@ -163,14 +163,14 @@ namespace Community_Event_Finder.Tests
             {
                 Title = "Concert - Updated Info",
                 ExternalEventId = "ext-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ,
-                Source = "PredictHQ",
+                ExternalEventSourceType = EventSourceType.Ticketmaster,
+                Source = "Ticketmaster",
                 StartTime = new System.DateTime(2026, 5, 15, 19, 30, 0),
                 EndTime = new System.DateTime(2026, 5, 15, 22, 30, 0)
             };
 
             // Act - Check if same event (by primary key)
-            var isDuplicate = 
+            var isDuplicate =
                 original.ExternalEventId == updated.ExternalEventId &&
                 original.ExternalEventSourceType == updated.ExternalEventSourceType;
 
