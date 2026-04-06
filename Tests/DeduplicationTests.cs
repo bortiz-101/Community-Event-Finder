@@ -84,7 +84,7 @@ namespace Community_Event_Finder.Tests
             var (first, second) = TestDataFactory.CreateSecondaryDeduplicationScenario();
 
             // Act
-            var isSameEvent = 
+            var isSameEvent =
                 first.Title == second.Title &&
                 first.StartTime == second.StartTime &&
                 first.VenueName == second.VenueName;
@@ -170,7 +170,7 @@ namespace Community_Event_Finder.Tests
             };
 
             // Act - Check if same event (by primary key)
-            var isDuplicate = 
+            var isDuplicate =
                 original.ExternalEventId == updated.ExternalEventId &&
                 original.ExternalEventSourceType == updated.ExternalEventSourceType;
 
