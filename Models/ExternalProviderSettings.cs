@@ -5,9 +5,6 @@ namespace Community_Event_Finder.Models
     {
         public const string SectionName = "ExternalProviders";
 
-        // PredictHQ provider settings
-        public PredictHQSettings PredictHQ { get; set; } = new();
-
         // Ticketmaster provider settings
         public TicketmasterSettings Ticketmaster { get; set; } = new();
 
@@ -22,36 +19,6 @@ namespace Community_Event_Finder.Models
         public decimal? SearchLatitude { get; set; }
         public decimal? SearchLongitude { get; set; }
         public double? SearchRadiusMiles { get; set; }
-    }
-
-    // PredictHQ API configuration
-    // Reference: https://api.predicthq.com/v1/events/
-    public class PredictHQSettings
-    {
-        // Events endpoint URL (e.g., https://api.predicthq.com/v1/events)
-        public string? EventsUrl { get; set; }
-
-        // API key for authentication
-        public string? ApiKey { get; set; }
-
-        // Whether this provider is enabled
-        public bool Enabled { get; set; }
-
-        // Validates that all required settings are configured
-        public List<string> Validate()
-        {
-            var errors = new List<string>();
-
-            if (Enabled)
-            {
-                if (string.IsNullOrWhiteSpace(EventsUrl))
-                    errors.Add("PredictHQ EventsUrl is required when enabled");
-                if (string.IsNullOrWhiteSpace(ApiKey))
-                    errors.Add("PredictHQ ApiKey is required when enabled");
-            }
-
-            return errors;
-        }
     }
 
     // Ticketmaster API configuration
@@ -93,6 +60,9 @@ namespace Community_Event_Finder.Models
 
         // Client ID for authentication
         public string? ClientId { get; set; }
+
+        // Client Secret for authentication (optional but recommended)
+        public string? ClientSecret { get; set; }
 
         // Whether this provider is enabled
         public bool Enabled { get; set; }

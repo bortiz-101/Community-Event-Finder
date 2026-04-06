@@ -27,7 +27,7 @@ namespace Community_Event_Finder.Tests
                 StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
                 EndTime = new DateTime(2026, 5, 15, 21, 0, 0),
                 ExternalEventId = "ext-123",
-                ExternalEventSourceType = EventSourceType.PredictHQ
+                ExternalEventSourceType = EventSourceType.SeatGeek
             };
 
             // Act
@@ -301,7 +301,7 @@ namespace Community_Event_Finder.Tests
                 ExternalId = "ext-123",
                 Title = "Festival",
                 StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -321,7 +321,7 @@ namespace Community_Event_Finder.Tests
                 ExternalId = "ext-123",
                 Title = "Festival",
                 StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -351,7 +351,7 @@ namespace Community_Event_Finder.Tests
                 ExternalId = "ext-123",
                 Title = "",
                 StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -371,7 +371,7 @@ namespace Community_Event_Finder.Tests
                 ExternalId = "ext-123",
                 Title = "Festival",
                 StartTime = default(DateTime), // Not set
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -392,7 +392,7 @@ namespace Community_Event_Finder.Tests
                 Title = "Festival",
                 StartTime = new DateTime(2026, 5, 15, 21, 0, 0),
                 EndTime = new DateTime(2026, 5, 15, 19, 0, 0), // Before start
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -413,7 +413,7 @@ namespace Community_Event_Finder.Tests
                 ExternalId = "ext-123",
                 Title = longTitle,
                 StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
-                Source = "PredictHQ"
+                Source = "SeatGeek"
             };
 
             // Act
@@ -516,7 +516,7 @@ namespace Community_Event_Finder.Tests
                 City = "Boston",
                 State = "MA",
                 Category = "Festival",
-                Source = "PredictHQ"
+                Source = "Ticketmaster"
             };
 
             // Act

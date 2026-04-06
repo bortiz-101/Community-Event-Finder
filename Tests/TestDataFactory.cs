@@ -10,38 +10,10 @@ namespace Community_Event_Finder.Tests
     /// </summary>
     public static class TestDataFactory
     {
-        /// <summary>
-        /// Creates a test ExternalEventDto from PredictHQ provider.
-        /// Validates:
-        /// - Title field populated correctly
-        /// - StartTime/EndTime set properly
-        /// - EventSourceType = PredictHQ
-        /// - ExternalEventId set from provider
-        /// </summary>
-        public static ExternalEventDto CreatePredictHQTestEvent()
-        {
-            return new ExternalEventDto
-            {
-                ExternalId = "predictq-demo-123",
-                Title = "Live Concert - PredictHQ",
-                Description = "Normalized from PredictHQ provider",
-                StartTime = new DateTime(2026, 5, 15, 19, 0, 0),
-                EndTime = new DateTime(2026, 5, 15, 22, 0, 0),
-                VenueName = "Venue A",
-                Address = "100 Main St",
-                City = "Boston",
-                State = "MA",
-                Zip = "02101",
-                Category = "Entertainment",
-                Url = "https://predictq.example.com/events/123",
-                Source = "PredictHQ"
-            };
-        }
-
-        /// <summary>
-        /// Creates a test ExternalEventDto from SeatGeek provider.
-        /// Validates proper source tracking and field mapping.
-        /// </summary>
+    /// <summary>
+    /// Creates a test ExternalEventDto from SeatGeek provider.
+    /// Validates proper source tracking and field mapping.
+    /// </summary>
         public static ExternalEventDto CreateSeatGeekTestEvent()
         {
             return new ExternalEventDto
@@ -101,7 +73,7 @@ namespace Community_Event_Finder.Tests
                 City = "Atlanta",
                 State = "GA",
                 Category = "Sports",
-                Source = "PredictHQ"
+                Source = "Ticketmaster"
             };
 
             var second = new ExternalEventDto
@@ -138,7 +110,7 @@ namespace Community_Event_Finder.Tests
                     City = "New York",
                     State = "NY",
                     Zip = "10001",
-                    Source = "PredictHQ"
+                    Source = "Ticketmaster"
                 },
                 new ExternalEventDto
                 {
@@ -169,7 +141,7 @@ namespace Community_Event_Finder.Tests
                     Title = "Live Music Night",
                     StartTime = new DateTime(2026, 10, 5, 19, 0, 0),
                     Category = "Music",
-                    Source = "PredictHQ"
+                    Source = "Ticketmaster"
                 },
                 new ExternalEventDto
                 {
@@ -195,21 +167,21 @@ namespace Community_Event_Finder.Tests
                     ExternalId = "valid-event",
                     Title = "Valid Event",
                     StartTime = new DateTime(2026, 11, 1, 10, 0, 0),
-                    Source = "PredictHQ"
+                    Source = "Ticketmaster"
                 },
                 new ExternalEventDto
                 {
                     ExternalId = "invalid-no-title",
                     Title = "",
                     StartTime = new DateTime(2026, 11, 2, 10, 0, 0),
-                    Source = "PredictHQ"
+                    Source = "Ticketmaster"
                 },
                 new ExternalEventDto
                 {
                     ExternalId = "invalid-no-starttime",
                     Title = "Event Without Start Time",
                     StartTime = default(DateTime),
-                    Source = "PredictHQ"
+                    Source = "Ticketmaster"
                 }
             };
         }
@@ -234,11 +206,11 @@ namespace Community_Event_Finder.Tests
                 new EventItem
                 {
                     Title = "Batch Event 2",
-                    Source = "PredictHQ",
+                    Source = "Ticketmaster",
                     StartTime = new DateTime(2026, 12, 5, 14, 0, 0),
                     EndTime = new DateTime(2026, 12, 5, 16, 0, 0),
                     ExternalEventId = "batch-2",
-                    ExternalEventSourceType = EventSourceType.PredictHQ
+                    ExternalEventSourceType = EventSourceType.Ticketmaster
                 },
                 new EventItem
                 {

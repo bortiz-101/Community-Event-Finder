@@ -27,14 +27,6 @@ namespace Community_Event_Finder.Data.ExternalProviders
 
             try
             {
-                var predictHQ = _serviceProvider.GetRequiredService<PredictHQProvider>();
-                if (predictHQ != null)
-                    providers.Add(predictHQ);
-            }
-            catch { _logger.LogDebug("PredictHQ provider not available"); }
-
-            try
-            {
                 var ticketmaster = _serviceProvider.GetRequiredService<TicketmasterProvider>();
                 if (ticketmaster != null)
                     providers.Add(ticketmaster);

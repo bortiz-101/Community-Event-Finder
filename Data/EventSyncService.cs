@@ -197,7 +197,6 @@ namespace Community_Event_Finder.Data
         {
             return providerName.ToLowerInvariant() switch
             {
-                "predicthq" => EventSourceType.PredictHQ,
                 "seatgeek" => EventSourceType.SeatGeek,
                 "ticketmaster" => EventSourceType.Ticketmaster,
                 _ => null
