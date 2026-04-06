@@ -8,7 +8,6 @@ namespace Community_Event_Finder.Data
     /// <summary>
     /// Service for validating events across different contexts (domain models and DTOs).
     /// Provides centralized, reusable validation logic with detailed error messages.
-    /// Issue #10: Centralized Validation
     /// </summary>
     public interface IEventValidator
     {
