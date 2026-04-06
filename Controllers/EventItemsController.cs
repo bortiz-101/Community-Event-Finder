@@ -15,6 +15,7 @@ namespace Community_Event_Finder.Controllers
         private readonly IEventRepository _repo;
         private readonly IExternalEventProviderFactory _providerFactory;
         private readonly INormalizationService _normalizationService;
+        private readonly IEventValidator _validator;
         private readonly ILogger<EventItemsController> _logger;
         private readonly ExternalProvidersSettings _settings;
 
@@ -22,12 +23,14 @@ namespace Community_Event_Finder.Controllers
             IEventRepository repo,
             IExternalEventProviderFactory providerFactory,
             INormalizationService normalizationService,
+            IEventValidator validator,
             ILogger<EventItemsController> logger,
             IOptions<ExternalProvidersSettings> settings)
         {
             _repo = repo;
             _providerFactory = providerFactory;
             _normalizationService = normalizationService;
+            _validator = validator;
             _logger = logger;
             _settings = settings.Value;
         }
@@ -222,9 +225,17 @@ namespace Community_Event_Finder.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Add event request failed model validation.");
-
                 return BadRequest(ModelState);
             }
+
+            // Use centralized validator for business logic validation
+            var validationResult = _validator.ValidateAddEventDto(dto);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Add event business validation failed. Errors: {Errors}", validationResult.GetErrorsAsString());
+                return BadRequest(new { errors = validationResult.Errors });
+            }
+
             var start = dto.StartTime ?? DateTime.Now;
             var end = dto.EndTime ?? start.AddHours(1);
 
