@@ -44,6 +44,7 @@ namespace Community_Event_Finder
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<INormalizationService, NormalizationService>();
+            builder.Services.AddScoped<IEventValidator, EventValidator>();
 
             // Register external event providers
             builder.Services.AddScoped<PredictHQProvider>();
