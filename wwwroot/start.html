@@ -291,6 +291,46 @@
                 border-radius: 18px;
             }
         }
+
+        .auth-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .auth-bar a, .auth-bar button {
+            padding: 8px 12px !important;
+            width: auto !important;
+            margin: 0 !important;
+            background: #0078d7;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .auth-bar a:hover, .auth-bar button:hover {
+            background: #005a9e;
+        }
+
+        .auth-bar .logout {
+            background: #dc3545;
+        }
+
+        .auth-bar .logout:hover {
+            background: #c82333;
+        }
+
+        .user-info {
+            color: #333;
+            padding: 8px 12px;
+            white-space: nowrap;
+        }
     </style>
 
 </head>
@@ -298,40 +338,6 @@
 
 
 <body>
-
-    <div class="page-shell">
-
-        <div class="hero-panel">
-
-            <div class="eyebrow">Chicago Event Discovery</div>
-
-            <h1>Community Event Finder</h1>
-
-            <p>
-
-                Search local events by address, category, and distance.
-
-                Quickly discover concerts, sports, food events, volunteer opportunities,
-
-                and more through one clean, modern experience.
-
-            </p>
-
-
-
-            <div class="feature-row">
-
-                <div class="feature-pill">Live Event Search</div>
-
-                <div class="feature-pill">Save Favorite</div>
-
-                <div class="feature-pill">Add Events</div>
-
-            </div>
-
-        </div>
-
-
 
         <div class="box">
 
@@ -436,7 +442,6 @@
 
 
     <script>
-
         function go() {
 
             const a = addr.value.trim();
