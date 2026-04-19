@@ -1,129 +1,470 @@
 ﻿<!DOCTYPE html>
-<html>
+
+<html lang="en">
+
 <head>
+
     <meta charset="utf-8">
-    <title>Search Events</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Community Event Finder</title>
+
+
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+
         body {
-            font-family: Arial;
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            background: #f5f7fa;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(8, 34, 84, 0.92), rgba(16, 88, 173, 0.82)), radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 30%), radial-gradient(circle at bottom left, rgba(255,255,255,0.12), transparent 25%), #0d47a1;
+            color: #ffffff;
         }
+
+
+
+        .page-shell {
+            width: 100%;
+            max-width: 1180px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.95fr;
+            gap: 34px;
+            align-items: center;
+        }
+
+
+
+        .hero-panel {
+            padding: 20px 10px 20px 0;
+        }
+
+
+
+        .eyebrow {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-size: 13px;
+            letter-spacing: 0.4px;
+            margin-bottom: 18px;
+        }
+
+
+
+        .hero-panel h1 {
+            font-size: 54px;
+            line-height: 1.05;
+            margin: 0 0 16px 0;
+            font-weight: 700;
+        }
+
+
+
+        .hero-panel p {
+            font-size: 17px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.88);
+            max-width: 560px;
+            margin: 0 0 26px 0;
+        }
+
+
+
+        .feature-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+
+
+        .feature-pill {
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.16);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+        }
+
+
 
         .box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,.1);
-            width: 320px;
+            background: rgba(255,255,255,0.96);
+            color: #1a1a1a;
+            padding: 28px;
+            border-radius: 24px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+            width: 100%;
+            max-width: 430px;
+            justify-self: end;
+            backdrop-filter: blur(4px);
         }
 
-        input, select, button {
-            width: 100%;
-            margin: 8px 0;
-            padding: 10px;
+
+
+            .box h2 {
+                margin: 0 0 6px 0;
+                font-size: 30px;
+                color: #0d47a1;
+            }
+
+
+
+        .subtext {
+            margin: 0 0 22px 0;
+            font-size: 14px;
+            color: #5a6472;
+            line-height: 1.5;
         }
+
+
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #31435c;
+            margin: 14px 0 6px;
+        }
+
+
+
+        input,
+        select,
+        button {
+            width: 100%;
+            margin: 0;
+            padding: 13px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+
+
+        input,
+        select {
+            border: 1px solid #d6dfeb;
+            background: #f8fbff;
+            color: #1c2430;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+
+
+            input:focus,
+            select:focus {
+                border-color: #2c7be5;
+                box-shadow: 0 0 0 4px rgba(44, 123, 229, 0.14);
+                background: #ffffff;
+            }
+
+
 
         button {
-            background: #0078d7;
-            color: white;
             border: none;
             cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
         }
 
-        button:hover:not(:disabled) {
-            background: #005a9e;
+
+
+            button:hover:not(:disabled) {
+                transform: translateY(-1px);
+            }
+
+
+
+            button:disabled {
+                background: #c9ced6;
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+
+
+        .searchBtn {
+            background: #0078d7;
+            color: white;
+            margin-top: 18px;
+            box-shadow: 0 10px 24px rgba(0, 120, 215, 0.28);
         }
 
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
+
+
+            .searchBtn:hover:not(:disabled) {
+                background: #005a9e;
+            }
+
+
 
         .divider {
-            margin: 16px 0;
-            border-top: 1px solid #ddd;
+            margin: 22px 0;
+            border-top: 1px solid #e3e8f0;
         }
+
+
 
         .syncBtn {
             background: #27ae60;
+            color: white;
+            box-shadow: 0 10px 24px rgba(39, 174, 96, 0.22);
         }
 
-        .syncBtn:hover:not(:disabled) {
-            background: #229954;
+
+
+            .syncBtn:hover:not(:disabled) {
+                background: #229954;
+            }
+
+
+
+        .helper {
+            font-size: 12px;
+            color: #6d7786;
+            margin-top: 10px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+
+
+        @media (max-width: 980px) {
+
+            .page-shell {
+                grid-template-columns: 1fr;
+            }
+
+
+
+            .hero-panel {
+                padding: 0;
+            }
+
+
+
+                .hero-panel h1 {
+                    font-size: 40px;
+                }
+
+
+
+            .box {
+                justify-self: start;
+                max-width: 100%;
+            }
+        }
+
+
+
+        @media (max-width: 560px) {
+
+            body {
+                padding: 16px;
+            }
+
+
+
+            .hero-panel h1 {
+                font-size: 32px;
+            }
+
+
+
+            .box {
+                padding: 22px 18px;
+                border-radius: 18px;
+            }
         }
     </style>
+
 </head>
+
+
 
 <body>
 
-    <div class="box">
+    <div class="page-shell">
 
-        <h2>Find Events</h2>
+        <div class="hero-panel">
 
-        <input id="addr"
-               value="1032 W Sheridan Rd, Chicago, IL"
-               placeholder="Enter address">
+            <div class="eyebrow">Chicago Event Discovery</div>
 
-        <select id="cat">
-            <option value="">All categories</option>
-            <option>Music and theather</option>
-            <option>Game, party and social</option>
-            <option>Sports</option>
-            <option>Food</option>
-            <option>Health</option>
-            <option>Study</option>
-            <option>Arts</option>
-            <option>Business</option>
-            <option>Festival</option>
-            <option>Community</option>
-            <option>Career</option>
-            <option>Volunteer</option>
-            <option>Family</option>
-            <option>Other</option>
-        </select>
+            <h1>Community Event Finder</h1>
 
-        <select id="radius">
-            <option value="">Any distance</option>
-            <option value="5">5 miles</option>
-            <option value="10">10 miles</option>
-            <option value="20">20 miles</option>
-        </select>
+            <p>
 
-        <button onclick="go()">🔍 Search</button>
+                Search local events by address, category, and distance.
 
-        <div class="divider"></div>
+                Quickly discover concerts, sports, food events, volunteer opportunities,
 
-        <button id="syncBtn" class="syncBtn" onclick="syncExternalEvents()">⟳ Sync Event Data</button>
+                and more through one clean, modern experience.
 
-        <p style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;">
-            Click "Sync Event Data" to download the latest events from external sources.
-        </p>
+            </p>
+
+
+
+            <div class="feature-row">
+
+                <div class="feature-pill">Live Event Search</div>
+
+                <div class="feature-pill">Save Favorite</div>
+
+                <div class="feature-pill">Add Events</div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="box">
+
+            <h2>Find Events</h2>
+
+            <p class="subtext">
+
+                Enter your location and choose filters to start exploring events near you.
+
+            </p>
+
+
+
+            <label class="field-label" for="addr">Address</label>
+
+            <input id="addr"
+                   value="1032 W Sheridan Rd, Chicago, IL"
+                   placeholder="Enter address">
+
+
+
+            <label class="field-label" for="cat">Category</label>
+
+            <select id="cat">
+
+                <option value="">All categories</option>
+
+                <option>Music and theather</option>
+
+                <option>Game, party and social</option>
+
+                <option>Sports</option>
+
+                <option>Food</option>
+
+                <option>Health</option>
+
+                <option>Study</option>
+
+                <option>Arts</option>
+
+                <option>Business</option>
+
+                <option>Festival</option>
+
+                <option>Community</option>
+
+                <option>Career</option>
+
+                <option>Volunteer</option>
+
+                <option>Family</option>
+
+                <option>Other</option>
+
+            </select>
+
+
+
+            <label class="field-label" for="radius">Distance</label>
+
+            <select id="radius">
+
+                <option value="">Any distance</option>
+
+                <option value="5">5 miles</option>
+
+                <option value="10">10 miles</option>
+
+                <option value="20">20 miles</option>
+
+            </select>
+
+
+
+            <button class="searchBtn" onclick="go()">🔍 Search</button>
+
+
+
+            <div class="divider"></div>
+
+
+
+            <button id="syncBtn" class="syncBtn" onclick="syncExternalEvents()">⟳ Sync Event Data</button>
+
+
+
+            <p class="helper">
+
+                Click "Sync Event Data" to download the latest events from external sources.
+
+            </p>
+
+        </div>
 
     </div>
 
+
+
     <script src="app.js"></script>
 
+
+
     <script>
+
         function go() {
+
             const a = addr.value.trim();
+
             const c = cat.value;
+
             const r = radius.value;
+
+
 
             let url = "/index.html?";
 
+
+
             if (a) url += "addr=" + encodeURIComponent(a) + "&";
+
             if (c) url += "cat=" + encodeURIComponent(c) + "&";
+
             if (r) url += "radius=" + r;
 
+
+
             location.href = url;
+
         }
+
     </script>
 
 </body>
+
 </html>
