@@ -1,4 +1,11 @@
 ﻿// ================= MAP INIT =================
+
+// Only initialize if map element exists (loaded on index.html, not start.html)
+if (!document.getElementById('map')) {
+    console.log('Map element not found - skipping map initialization');
+    throw new Error('Map initialization skipped for non-map pages');
+}
+
 const categoryColors = {
     "Music and theather": "#e74c3c",
     "Game, party and social": "#ff7f50",

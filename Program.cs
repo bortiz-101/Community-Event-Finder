@@ -1,6 +1,7 @@
 using Community_Event_Finder.Data;
 using Community_Event_Finder.Data.ExternalProviders;
 using Community_Event_Finder.Models;
+using Community_Event_Finder.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -11,7 +12,7 @@ namespace Community_Event_Finder
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,11 @@ namespace Community_Event_Finder
                     sqlOptions.EnableRetryOnFailure()));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddHttpContextAccessor();
 
             // Configure JSON serialization to handle circular references and DTOs
             builder.Services.AddControllers()
@@ -45,6 +49,7 @@ namespace Community_Event_Finder
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<INormalizationService, NormalizationService>();
             builder.Services.AddScoped<IEventValidator, EventValidator>();
+            builder.Services.AddScoped<IUserContext, UserContext>();
 
             // Register external event providers
             builder.Services.AddScoped<TicketmasterProvider>();
@@ -78,6 +83,8 @@ namespace Community_Event_Finder
 
             app.UseRouting();
 
+            app.UseAuthentication();
+            app.UseAuthenticationRedirect();
             app.UseAuthorization();
 
             app.MapStaticAssets();
@@ -87,6 +94,9 @@ namespace Community_Event_Finder
                 .WithStaticAssets();
             app.MapRazorPages()
                .WithStaticAssets();
+
+            // Initialize seed data (roles and test users)
+            await SeedData.InitializeAsync(app.Services);
 
             app.Run();
         }

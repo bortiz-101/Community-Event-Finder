@@ -5,6 +5,7 @@ using Community_Event_Finder.Data;
 using Community_Event_Finder.Data.ExternalProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Community_Event_Finder.Controllers
 {
@@ -94,6 +95,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= SYNC EXTERNAL PROVIDERS =================
         [HttpPost("sync")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SyncExternalEvents()
         {
             var summary = new EventSyncSummary();
@@ -226,6 +228,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= ADD EVENT =================
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Add([FromBody] AddEventDto dto)
         {
             if (!ModelState.IsValid)
@@ -282,6 +285,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= FAVORITES =================
         [HttpGet("favorites")]
+        [Authorize]
         public async Task<IActionResult> Favorites()
         {
             return Ok(await _repo.GetFavoriteEventsForCurrentMonthAsync());
@@ -289,6 +293,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= TOGGLE FAVORITE =================
         [HttpPut("favorite/{id}")]
+        [Authorize]
         public async Task<IActionResult> ToggleFavorite(string id)
         {
             await _repo.ToggleFavoriteAsync(id);
@@ -297,6 +302,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= DELETE =================
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(string id)
         {
             try
@@ -313,6 +319,7 @@ namespace Community_Event_Finder.Controllers
 
         // ================= EXPORT ICS =================
         [HttpGet("ics")]
+        [Authorize]
         public async Task<IActionResult> ExportIcs()
         {
             var events = await _repo.GetFavoriteEventsForCurrentMonthAsync();

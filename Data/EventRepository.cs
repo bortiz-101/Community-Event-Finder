@@ -1,4 +1,5 @@
 ﻿using Community_Event_Finder.Models;
+using Community_Event_Finder.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text.Json;
@@ -10,30 +11,36 @@ namespace Community_Event_Finder.Data
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpFactory;
         private readonly ILogger<EventRepository> _logger;
+        private readonly IUserContext _userContext;
 
-
-        // TODO: Replace with actual logged-in user ID from User.FindFirst(ClaimTypes.NameIdentifier)
-        private readonly string _userId = "test-user";
-
-        public EventRepository(ApplicationDbContext context, IHttpClientFactory httpFactory, ILogger<EventRepository> logger)
+        public EventRepository(ApplicationDbContext context, IHttpClientFactory httpFactory, ILogger<EventRepository> logger, IUserContext userContext)
         {
             _context = context;
             _httpFactory = httpFactory;
             _logger = logger;
+            _userContext = userContext;
+        }
+
+        // Get the current user ID, or empty string if not authenticated
+        private string GetUserId()
+        {
+            var userId = _userContext.GetUserId();
+            return userId ?? "";
         }
 
         // ================= GET EVENTS =================
 
         public async Task<List<EventDto>> GetEventsForCurrentMonthAsync()
         {
-            _logger.LogInformation("Getting events for current month for user {UserId}", _userId);
+            var userId = GetUserId();
+            _logger.LogInformation("Getting events for current month for user {UserId}", userId);
 
             // Events in 1 month starting from today
             var start = DateTime.Today;
             var end = start.AddMonths(12);
 
             var favoriteEventIds = await _context.Favorites
-                .Where(f => f.UserId == _userId)
+                .Where(f => f.UserId == userId)
                 .Select(f => f.EventId)
                 .ToListAsync();
 
@@ -52,7 +59,7 @@ namespace Community_Event_Finder.Data
                 dtos.Add(EventDto.FromEventItem(evt));
             }
 
-            _logger.LogInformation("Retrieved {EventCount} events for user {UserId}", dtos.Count, _userId);
+            _logger.LogInformation("Retrieved {EventCount} events for user {UserId}", dtos.Count, userId);
 
             return dtos;
         }
@@ -60,7 +67,7 @@ namespace Community_Event_Finder.Data
         public async Task<List<EventDto>> GetFavoriteEventsForCurrentMonthAsync()
         {
             var all = await GetEventsForCurrentMonthAsync();
-            _logger.LogInformation("Retrieved {EventCount} favorite events for user {UserId}", all.Count(e => e.IsFavorite), _userId);
+            _logger.LogInformation("Retrieved {EventCount} favorite events for user {UserId}", all.Count(e => e.IsFavorite), GetUserId());
             return all.Where(e => e.IsFavorite).ToList();
         }
 
@@ -74,8 +81,9 @@ namespace Community_Event_Finder.Data
             var start = new DateTime(year, month, 1);
             var end = start.AddMonths(1);
 
+            var userId = GetUserId();
             var favoriteEventIds = await _context.Favorites
-                .Where(f => f.UserId == _userId)
+                .Where(f => f.UserId == userId)
                 .Select(f => f.EventId)
                 .ToListAsync();
 
@@ -109,8 +117,9 @@ namespace Community_Event_Finder.Data
             if (evt == null)
                 return null;
 
+            var userId = GetUserId();
             var favoriteEventIds = await _context.Favorites
-                .Where(f => f.UserId == _userId)
+                .Where(f => f.UserId == userId)
                 .Select(f => f.EventId)
                 .ToListAsync();
 
@@ -125,7 +134,8 @@ namespace Community_Event_Finder.Data
             string? venue, string? address, string? city, string? state, string? zip,
             string? desc, string? url)
         {
-            _logger.LogInformation("Attempting to insert event with title {Title} for user {UserId}", title, _userId);
+            var userId = GetUserId();
+            _logger.LogInformation("Attempting to insert event with title {Title} for user {UserId}", title, userId);
 
             // Check for duplicates
             var exists = await _context.Events
@@ -187,7 +197,7 @@ namespace Community_Event_Finder.Data
                 StartTime = start,
                 EndTime = end,
                 Url = url,
-                CreatedByUserId = _userId
+                CreatedByUserId = userId
             };
 
             _context.Events.Add(eventItem);
@@ -200,16 +210,17 @@ namespace Community_Event_Finder.Data
 
         public async Task DeleteEventAsync(string id)
         {
-            _logger.LogInformation("Attempting to delete event {EventId} for user {UserId}", id, _userId);
+            var userId = GetUserId();
+            _logger.LogInformation("Attempting to delete event {EventId} for user {UserId}", id, userId);
 
             var eventItem = await _context.Events
-                .FirstOrDefaultAsync(e => e.EventId == id && e.CreatedByUserId == _userId);
+                .FirstOrDefaultAsync(e => e.EventId == id && e.CreatedByUserId == userId);
 
             if (eventItem != null)
             {
                 _context.Events.Remove(eventItem);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Deleted event {EventId} for user {UserId}", id, _userId);
+                _logger.LogInformation("Deleted event {EventId} for user {UserId}", id, userId);
             }
         }
 
@@ -217,8 +228,9 @@ namespace Community_Event_Finder.Data
 
         public async Task ToggleFavoriteAsync(string eventId)
         {
+            var userId = GetUserId();
             var existing = await _context.Favorites
-                .FirstOrDefaultAsync(f => f.UserId == _userId && f.EventId == eventId);
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.EventId == eventId);
 
             if (existing != null)
             {
@@ -228,7 +240,7 @@ namespace Community_Event_Finder.Data
             {
                 var favorite = new Favorite
                 {
-                    UserId = _userId,
+                    UserId = userId,
                     EventId = eventId
                 };
                 _context.Favorites.Add(favorite);

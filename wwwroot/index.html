@@ -202,10 +202,57 @@
         button[onclick="syncExternalEvents()"]:hover:not(:disabled) {
             background: #229954;
         }
+
+        .auth-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .auth-bar a, .auth-bar button {
+            padding: 8px 12px !important;
+            width: auto !important;
+            margin: 0 !important;
+            background: #0078d7;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .auth-bar a:hover, .auth-bar button:hover {
+            background: #005a9e;
+        }
+
+        .auth-bar .logout {
+            background: #dc3545;
+        }
+
+        .auth-bar .logout:hover {
+            background: #c82333;
+        }
+
+        .user-info {
+            background: #f0f0f0;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
 <body>
+    <div class="auth-bar" id="authBar">
+        <a href="login.html">🔐 Login</a>
+        <a href="register.html">✍️ Register</a>
+    </div>
 
     <div id="map"></div>
 
@@ -268,8 +315,12 @@
 
             <button class="toolbarBtn" onclick="openCalendarWindow()">📅 Calendar</button>
 
+            <button class="toolbarBtn" onclick="window.location.href='/favorites.html'" style="background: #9b59b6;">
+                ⭐ View Favorites
+            </button>
+
             <button class="toolbarBtn" onclick="window.open('/api/events/ics')">
-                ⭐ Export Starred events (ICS)
+                📥 Export Starred (ICS)
             </button>
 
         </div>
@@ -281,6 +332,66 @@
     </div>
 
     <script src="app.js"></script>
+
+    <script>
+        // Check user authentication status
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    updateAuthBar(user);
+                } else {
+                    // Not authenticated
+                    showAuthButtons();
+                }
+            } catch (error) {
+                console.log('Authentication check failed:', error);
+                showAuthButtons();
+            }
+        }
+
+        function updateAuthBar(user) {
+            const authBar = document.getElementById('authBar');
+            const isAdmin = user.roles && user.roles.includes('Admin');
+            
+            authBar.innerHTML = `
+                <div class="user-info">👤 ${user.userName}</div>
+                ${isAdmin ? '<button class="admin-btn" title="Admin">⚙️ Admin</button>' : ''}
+                <button class="logout" onclick="logout()">🚪 Logout</button>
+            `;
+        }
+
+        function showAuthButtons() {
+            const authBar = document.getElementById('authBar');
+            authBar.innerHTML = `
+                <a href="login.html">🔐 Login</a>
+                <a href="register.html">✍️ Register</a>
+            `;
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Logged out successfully!');
+                    location.href = 'start.html';
+                }
+            } catch (error) {
+                alert('Logout failed: ' + error.message);
+            }
+        }
+
+        // Check auth status on page load
+        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+    </script>
 
 </body>
 </html>
