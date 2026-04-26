@@ -15,7 +15,7 @@ namespace Community_Event_Finder.Data
             {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                
+
                 await CreateRolesAsync(roleManager);
                 await CreateSuperUserAsync(userManager);
             }
