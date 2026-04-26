@@ -339,6 +339,42 @@
 
 <body>
 
+    <div class="page-shell">
+
+        <div class="hero-panel">
+
+            <div class="eyebrow">Chicago Event Discovery</div>
+
+            <h1>Community Event Finder</h1>
+
+            <p>
+
+                Search local events by address, category, and distance.
+
+                Quickly discover concerts, sports, food events, volunteer opportunities,
+
+                and more through one clean, modern experience.
+
+            </p>
+
+
+
+            <div class="feature-row">
+
+                <div class="feature-pill">Live Event Search</div>
+
+                <div class="feature-pill">Save Favorite</div>
+
+                <div class="feature-pill">Add Events</div>
+
+            </div>
+
+        </div>
+
+
+
+    <div class="auth-bar" id="authBar"></div>
+
         <div class="box">
 
             <h2>Find Events</h2>
@@ -442,6 +478,63 @@
 
 
     <script>
+        // Initialize auth bar on page load
+        document.addEventListener('DOMContentLoaded', checkAuthentication);
+
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/status', {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    updateAuthBar(user);
+                } else {
+                    // Not authenticated
+                    showAuthButtons();
+                }
+            } catch (error) {
+                console.log('Authentication check failed:', error);
+                showAuthButtons();
+            }
+        }
+
+        function updateAuthBar(user) {
+            const authBar = document.getElementById('authBar');
+            const isAdmin = user.roles && user.roles.includes('Admin');
+            
+            authBar.innerHTML = `
+                <div class="user-info">👤 ${user.userName}</div>
+                ${isAdmin ? '<button class="admin-btn" title="Admin">⚙️ Admin</button>' : ''}
+                <button class="logout" onclick="logout()">🚪 Logout</button>
+            `;
+        }
+
+        function showAuthButtons() {
+            const authBar = document.getElementById('authBar');
+            authBar.innerHTML = `
+                <a href="login.html">🔐 Login</a>
+                <a href="register.html">✍️ Register</a>
+            `;
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Logged out successfully!');
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
         function go() {
 
             const a = addr.value.trim();
@@ -469,6 +562,8 @@
         }
 
     </script>
+
+    </div>
 
 </body>
 
